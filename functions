@@ -1,3 +1,5 @@
+print("Made By Coredistxrted For CoderSploit")
+
 if getgenv and getgenv().MoreUNC then return end
 
 -- Definitions
