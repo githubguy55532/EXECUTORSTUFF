@@ -1,1 +1,1685 @@
-if getgenv and getgenv().MoreUNC then return end\r\n\r\n-- Definitions\r\nlocal table = table.clone(table) -- Prevent modifications from other scripts\r\nlocal debug = table.clone(debug) -- ^^^^\r\nlocal bit32 = table.clone(bit32)\r\nlocal bit = bit32\r\nlocal os = table.clone(os)\r\nlocal math = table.clone(math)\r\nlocal utf8 = table.clone(utf8)\r\nlocal string = table.clone(string)\r\nlocal task = table.clone(task)\r\n\r\nlocal game = game -- game is game\r\nlocal oldGame = game\r\n\r\nlocal ExecutorVersion = 'Beta'\r\n\r\nlocal isDragging = false -- rconsole\r\nlocal dragStartPos = nil -- rconsole\r\nlocal frameStartPos = nil -- rconsole\r\n\r\nlocal Data = game:GetService(\"TeleportService\"):GetLocalPlayerTeleportData()\r\nlocal TeleportData\r\nif Data and Data.MOREUNCSCRIPTQUEUE then\r\n\tTeleportData = Data.MOREUNCSCRIPTQUEUE\r\nend\r\nif TeleportData then\r\n\tlocal func = loadstring(TeleportData)\r\n\tlocal s, e = pcall(func)\r\n\tif not s then task.spawn(error, e) end\r\nend\r\n\r\n\r\nprint = print\r\nwarn = warn\r\nerror = error\r\npcall = pcall\r\nprintidentity = printidentity\r\nipairs = ipairs\r\npairs = pairs\r\ntostring = tostring\r\ntonumber = tonumber\r\nsetmetatable = setmetatable\r\nrawget = rawget\r\nrawset = rawset\r\ngetmetatable = getmetatable\r\ntype = type\r\nExecutorVersion = ExecutorVersion\r\n\r\n-- Services / Instances\r\nlocal HttpService = game:GetService('HttpService');\r\nlocal Log = game:GetService('LogService');\r\n\r\nlocal vim = Instance.new(\"VirtualInputManager\");\r\n\r\nlocal DrawingDict = Instance.new(\"ScreenGui\") -- For drawing.new\r\n\r\nlocal ClipboardUI = Instance.new(\"ScreenGui\") -- For setclipboard\r\n\r\nlocal hui = Instance.new(\"Folder\") -- For gethui\r\nhui.Name = '\\0'\r\n\r\nlocal ClipboardBox = Instance.new('TextBox', ClipboardUI) -- For setclipboard\r\nClipboardBox.Position = UDim2.new(100, 0, 100, 0) -- VERY off screen\r\n\r\n-- All the following are for rconsole\r\nlocal Console = Instance.new(\"ScreenGui\")\r\nlocal ConsoleFrame = Instance.new(\"Frame\")\r\nlocal Topbar = Instance.new(\"Frame\")\r\nlocal _CORNER = Instance.new(\"UICorner\")\r\nlocal ConsoleCorner = Instance.new(\"UICorner\")\r\nlocal CornerHide = Instance.new(\"Frame\")\r\nlocal DontModify = Instance.new(\"Frame\")\r\nlocal UICorner = Instance.new(\"UICorner\")\r\nlocal CornerHide2 = Instance.new(\"Frame\")\r\nlocal Title = Instance.new(\"TextLabel\")\r\nlocal UIPadding = Instance.new(\"UIPadding\")\r\nlocal ConsoleIcon = Instance.new(\"ImageLabel\")\r\nlocal Holder = Instance.new(\"ScrollingFrame\")\r\nlocal MessageTemplate = Instance.new(\"TextLabel\")\r\nlocal InputTemplate = Instance.new(\"TextBox\")\r\nlocal UIListLayout = Instance.new(\"UIListLayout\")\r\nlocal HolderPadding = Instance.new(\"UIPadding\")\r\n\r\nConsole.Name = \"Console\"\r\nConsole.Parent = nil\r\nConsole.ZIndexBehavior = Enum.ZIndexBehavior.Sibling\r\n\r\nConsoleFrame.Name = \"ConsoleFrame\"\r\nConsoleFrame.Parent = Console\r\nConsoleFrame.BackgroundColor3 = Color3.fromRGB(0, 0, 0)\r\nConsoleFrame.BorderColor3 = Color3.fromRGB(0, 0, 0)\r\nConsoleFrame.BorderSizePixel = 0\r\nConsoleFrame.Position = UDim2.new(0.0963890627, 0, 0.220791712, 0)\r\nConsoleFrame.Size = UDim2.new(0, 888, 0, 577)\r\n\r\nTopbar.Name = \"Topbar\"\r\nTopbar.Parent = ConsoleFrame\r\nTopbar.BackgroundColor3 = Color3.fromRGB(20, 20, 20)\r\nTopbar.BorderColor3 = Color3.fromRGB(0, 0, 0)\r\nTopbar.BorderSizePixel = 0\r\nTopbar.Position = UDim2.new(0, 0, -0.000463640812, 0)\r\nTopbar.Size = UDim2.new(1, 0, 0, 32)\r\n\r\n_CORNER.Name = \"_CORNER\"\r\n_CORNER.Parent = Topbar\r\n\r\nConsoleCorner.Name = \"ConsoleCorner\"\r\nConsoleCorner.Parent = ConsoleFrame\r\n\r\nCornerHide.Name = \"CornerHide\"\r\nCornerHide.Parent = ConsoleFrame\r\nCornerHide.BackgroundColor3 = Color3.fromRGB(20, 20, 20)\r\nCornerHide.BorderColor3 = Color3.fromRGB(0, 0, 0)\r\nCornerHide.BorderSizePixel = 0\r\nCornerHide.Position = UDim2.new(0, 0, 0.0280000009, 0)\r\nCornerHide.Size = UDim2.new(1, 0, 0, 12)\r\n\r\nDontModify.Name = \"DontModify\"\r\nDontModify.Parent = ConsoleFrame\r\nDontModify.BackgroundColor3 = Color3.fromRGB(20, 20, 20)\r\nDontModify.BorderColor3 = Color3.fromRGB(0, 0, 0)\r\nDontModify.BorderSizePixel = 0\r\nDontModify.Position = UDim2.new(0.98169291, 0, 0.0278581586, 0)\r\nDontModify.Size = UDim2.new(-0.00675675692, 21, 0.972141862, 0)\r\n\r\nUICorner.Parent = DontModify\r\n\r\nCornerHide2.Name = \"CornerHide2\"\r\nCornerHide2.Parent = ConsoleFrame\r\nCornerHide2.AnchorPoint = Vector2.new(1, 0)\r\nCornerHide2.BackgroundColor3 = Color3.fromRGB(20, 20, 20)\r\nCornerHide2.BorderColor3 = Color3.fromRGB(0, 0, 0)\r\nCornerHide2.BorderSizePixel = 0\r\nCornerHide2.Position = UDim2.new(1, 0, 0.0450000018, 0)\r\nCornerHide2.Size = UDim2.new(0, 9, 0.955023408, 0)\r\n\r\nTitle.Name = \"Title\"\r\nTitle.Parent = ConsoleFrame\r\nTitle.BackgroundColor3 = Color3.fromRGB(255, 255, 255)\r\nTitle.BackgroundTransparency = 1.000\r\nTitle.BorderColor3 = Color3.fromRGB(0, 0, 0)\r\nTitle.BorderSizePixel = 0\r\nTitle.Position = UDim2.new(0.0440017432, 0, 0, 0)\r\nTitle.Size = UDim2.new(0, 164, 0, 30)\r\nTitle.Font = Enum.Font.GothamMedium\r\nTitle.Text = \"rconsole title\"\r\nTitle.TextColor3 = Color3.fromRGB(255, 255, 255)\r\nTitle.TextSize = 17.000\r\nTitle.TextXAlignment = Enum.TextXAlignment.Left\r\n\r\nUIPadding.Parent = Title\r\nUIPadding.PaddingTop = UDim.new(0, 5)\r\n\r\nConsoleIcon.Name = \"ConsoleIcon\"\r\nConsoleIcon.Parent = ConsoleFrame\r\nConsoleIcon.BackgroundColor3 = Color3.fromRGB(255, 255, 255)\r\nConsoleIcon.BackgroundTransparency = 1.000\r\nConsoleIcon.BorderColor3 = Color3.fromRGB(0, 0, 0)\r\nConsoleIcon.BorderSizePixel = 0\r\nConsoleIcon.Position = UDim2.new(0.00979213417, 0, 0.000874322082, 0)\r\nConsoleIcon.Size = UDim2.new(0, 31, 0, 31)\r\nConsoleIcon.Image = \"http://www.roblox.com/asset/?id=11843683545\"\r\n\r\nHolder.Name = \"Holder\"\r\nHolder.Parent = ConsoleFrame\r\nHolder.Active = true\r\nHolder.BackgroundColor3 = Color3.fromRGB(20, 20, 20)\r\nHolder.BackgroundTransparency = 1.000\r\nHolder.BorderColor3 = Color3.fromRGB(0, 0, 0)\r\nHolder.BorderSizePixel = 0\r\nHolder.Position = UDim2.new(0, 0, 0.054600548, 0)\r\nHolder.Size = UDim2.new(1, 0, 0.945399463, 0)\r\nHolder.ScrollBarThickness = 8\r\nHolder.CanvasSize = UDim2.new(0,0,0,0)\r\nHolder.AutomaticCanvasSize = Enum.AutomaticSize.XY\r\n\r\nMessageTemplate.Name = \"MessageTemplate\"\r\nMessageTemplate.Parent = Holder\r\nMessageTemplate.BackgroundColor3 = Color3.fromRGB(255, 255, 255)\r\nMessageTemplate.BackgroundTransparency = 1.000\r\nMessageTemplate.BorderColor3 = Color3.fromRGB(0, 0, 0)\r\nMessageTemplate.BorderSizePixel = 0\r\nMessageTemplate.Size = UDim2.new(0.9745, 0, 0.030000001, 0)\r\nMessageTemplate.Visible = false\r\nMessageTemplate.Font = Enum.Font.RobotoMono\r\nMessageTemplate.Text = \"TEMPLATE\"\r\nMessageTemplate.TextColor3 = Color3.fromRGB(255, 255, 255)\r\nMessageTemplate.TextSize = 20.000\r\nMessageTemplate.TextXAlignment = Enum.TextXAlignment.Left\r\nMessageTemplate.TextYAlignment = Enum.TextYAlignment.Top\r\nMessageTemplate.RichText = true\r\n\r\nUIListLayout.Parent = Holder\r\nUIListLayout.SortOrder = Enum.SortOrder.LayoutOrder\r\nUIListLayout.Padding = UDim.new(0, 4)\r\n\r\nHolderPadding.Name = \"HolderPadding\"\r\nHolderPadding.Parent = Holder\r\nHolderPadding.PaddingLeft = UDim.new(0, 15)\r\nHolderPadding.PaddingTop = UDim.new(0, 15)\r\n\r\nInputTemplate.Name = \"InputTemplate\"\r\nInputTemplate.Parent = nil\r\nInputTemplate.BackgroundColor3 = Color3.fromRGB(255, 255, 255)\r\nInputTemplate.BackgroundTransparency = 1.000\r\nInputTemplate.BorderColor3 = Color3.fromRGB(0, 0, 0)\r\nInputTemplate.BorderSizePixel = 0\r\nInputTemplate.Size = UDim2.new(0.9745, 0, 0.030000001, 0)\r\nInputTemplate.Visible = false\r\nInputTemplate.RichText = true\r\nInputTemplate.Font = Enum.Font.RobotoMono\r\nInputTemplate.Text = \"\"\r\nInputTemplate.PlaceholderText = ''\r\nInputTemplate.TextColor3 = Color3.fromRGB(255, 255, 255)\r\nInputTemplate.TextSize = 20.000\r\nInputTemplate.TextXAlignment = Enum.TextXAlignment.Left\r\nInputTemplate.TextYAlignment = Enum.TextYAlignment.Top\r\n\r\n-- Variables\r\nlocal Identity = -1\r\nlocal active = true\r\n-- Others\r\nlocal oldLoader = loadstring\r\n-- Empty Tables\r\nlocal clonerefs = {}\r\nlocal protecteduis = {}\r\nlocal gc = {}\r\nlocal Instances = {} -- for nil instances\r\nlocal funcs = {} -- main table\r\nlocal names = {} -- protected gui names\r\nlocal Cache = {} -- for cached instances\r\nlocal Drawings = {} -- for cleardrawcache\r\n-- Non empty tables\r\nlocal colors = {\r\n\tBLACK = Color3.fromRGB(50, 50, 50),\r\n\tBLUE = Color3.fromRGB(0, 0, 204),\r\n\tGREEN = Color3.fromRGB(0, 255, 0),\r\n\tCYAN = Color3.fromRGB(0, 255, 255),\r\n\tRED = Color3.fromHex('#5A0101'),\r\n\tMAGENTA = Color3.fromRGB(255, 0, 255),\r\n\tBROWN = Color3.fromRGB(165, 42, 42),\r\n\tLIGHT_GRAY = Color3.fromRGB(211, 211, 211),\r\n\tDARK_GRAY = Color3.fromRGB(169, 169, 169),\r\n\tLIGHT_BLUE = Color3.fromRGB(173, 216, 230),\r\n\tLIGHT_GREEN = Color3.fromRGB(144, 238, 144),\r\n\tLIGHT_CYAN = Color3.fromRGB(224, 255, 255),\r\n\tLIGHT_RED = Color3.fromRGB(255, 204, 203),\r\n\tLIGHT_MAGENTA = Color3.fromRGB(255, 182, 193),\r\n\tYELLOW = Color3.fromRGB(255, 255, 0),\r\n\tWHITE = Color3.fromRGB(255, 255, 255),\r\n\tORANGE = Color3.fromRGB(255, 186, 12)\r\n}\r\nlocal patterns = {\r\n\t{ pattern = '(%w+)%s*%+=%s*(%w+)', format = \"%s = %s + %s\" },\r\n\t{ pattern = '(%w+)%s*%-=%s*(%w+)', format = \"%s = %s - %s\" },\r\n\t{ pattern = '(%w+)%s*%*=%s*(%w+)', format = \"%s = %s * %s\" },\r\n\t{ pattern = '(%w+)%s*/=%s*(%w+)', format = \"%s = %s / %s\" }\r\n}\r\nlocal patterns2 = {\r\n\t{ pattern = 'for%s+(%w+)%s*,%s*(%w+)%s*in%s*(%w+)%s*do', format = \"for %s, %s in pairs(%s) do\" }\r\n}\r\nlocal renv = {\r\n\tprint, warn, error, assert, collectgarbage, load, require, select, tonumber, tostring, type, xpcall, pairs, next, ipairs,\r\n\tnewproxy, rawequal, rawget, rawset, rawlen, setmetatable, PluginManager,\r\n\tcoroutine.create, coroutine.resume, coroutine.running, coroutine.status, coroutine.wrap, coroutine.yield,\r\n\tbit32.arshift, bit32.band, bit32.bnot, bit32.bor, bit32.btest, bit32.extract, bit32.lshift, bit32.replace, bit32.rshift, bit32.xor,\r\n\tmath.abs, math.acos, math.asin, math.atan, math.atan2, math.ceil, math.cos, math.cosh, math.deg, math.exp, math.floor, math.fmod, math.frexp, math.ldexp, math.log, math.log10, math.max, math.min, math.modf, math.pow, math.rad, math.random, math.randomseed, math.sin, math.sinh, math.sqrt, math.tan, math.tanh,\r\n\tstring.byte, string.char, string.find, string.format, string.gmatch, string.gsub, string.len, string.lower, string.match, string.pack, string.packsize, string.rep, string.reverse, string.sub, string.unpack, string.upper,\r\n\ttable.concat, table.insert, table.pack, table.remove, table.sort, table.unpack,\r\n\tutf8.char, utf8.charpattern, utf8.codepoint, utf8.codes, utf8.len, utf8.nfdnormalize, utf8.nfcnormalize,\r\n\tos.clock, os.date, os.difftime, os.time,\r\n\tdelay, elapsedTime, require, spawn, tick, time, typeof, UserSettings, ExecutorVersion, wait,\r\n\ttask.defer, task.delay, task.spawn, task.wait,\r\n\tdebug.traceback, debug.profilebegin, debug.profileend\r\n}\r\nlocal keys={[0x08]=Enum.KeyCode.Backspace,[0x09]=Enum.KeyCode.Tab,[0x0C]=Enum.KeyCode.Clear,[0x0D]=Enum.KeyCode.Return,[0x10]=Enum.KeyCode.LeftShift,[0x11]=Enum.KeyCode.LeftControl,[0x12]=Enum.KeyCode.LeftAlt,[0x13]=Enum.KeyCode.Pause,[0x14]=Enum.KeyCode.CapsLock,[0x1B]=Enum.KeyCode.Escape,[0x20]=Enum.KeyCode.Space,[0x21]=Enum.KeyCode.PageUp,[0x22]=Enum.KeyCode.PageDown,[0x23]=Enum.KeyCode.End,[0x24]=Enum.KeyCode.Home,[0x2D]=Enum.KeyCode.Insert,[0x2E]=Enum.KeyCode.Delete,[0x30]=Enum.KeyCode.Zero,[0x31]=Enum.KeyCode.One,[0x32]=Enum.KeyCode.Two,[0x33]=Enum.KeyCode.Three,[0x34]=Enum.KeyCode.Four,[0x35]=Enum.KeyCode.Five,[0x36]=Enum.KeyCode.Six,[0x37]=Enum.KeyCode.Seven,[0x38]=Enum.KeyCode.Eight,[0x39]=Enum.KeyCode.Nine,[0x41]=Enum.KeyCode.A,[0x42]=Enum.KeyCode.B,[0x43]=Enum.KeyCode.C,[0x44]=Enum.KeyCode.D,[0x45]=Enum.KeyCode.E,[0x46]=Enum.KeyCode.F,[0x47]=Enum.KeyCode.G,[0x48]=Enum.KeyCode.H,[0x49]=Enum.KeyCode.I,[0x4A]=Enum.KeyCode.J,[0x4B]=Enum.KeyCode.K,[0x4C]=Enum.KeyCode.L,[0x4D]=Enum.KeyCode.M,[0x4E]=Enum.KeyCode.N,[0x4F]=Enum.KeyCode.O,[0x50]=Enum.KeyCode.P,[0x51]=Enum.KeyCode.Q,[0x52]=Enum.KeyCode.R,[0x53]=Enum.KeyCode.S,[0x54]=Enum.KeyCode.T,[0x55]=Enum.KeyCode.U,[0x56]=Enum.KeyCode.V,[0x57]=Enum.KeyCode.W,[0x58]=Enum.KeyCode.X,[0x59]=Enum.KeyCode.Y,[0x5A]=Enum.KeyCode.Z,[0x5D]=Enum.KeyCode.Menu,[0x60]=Enum.KeyCode.KeypadZero,[0x61]=Enum.KeyCode.KeypadOne,[0x62]=Enum.KeyCode.KeypadTwo,[0x63]=Enum.KeyCode.KeypadThree,[0x64]=Enum.KeyCode.KeypadFour,[0x65]=Enum.KeyCode.KeypadFive,[0x66]=Enum.KeyCode.KeypadSix,[0x67]=Enum.KeyCode.KeypadSeven,[0x68]=Enum.KeyCode.KeypadEight,[0x69]=Enum.KeyCode.KeypadNine,[0x6A]=Enum.KeyCode.KeypadMultiply,[0x6B]=Enum.KeyCode.KeypadPlus,[0x6D]=Enum.KeyCode.KeypadMinus,[0x6E]=Enum.KeyCode.KeypadPeriod,[0x6F]=Enum.KeyCode.KeypadDivide,[0x70]=Enum.KeyCode.F1,[0x71]=Enum.KeyCode.F2,[0x72]=Enum.KeyCode.F3,[0x73]=Enum.KeyCode.F4,[0x74]=Enum.KeyCode.F5,[0x75]=Enum.KeyCode.F6,[0x76]=Enum.KeyCode.F7,[0x77]=Enum.KeyCode.F8,[0x78]=Enum.KeyCode.F9,[0x79]=Enum.KeyCode.F10,[0x7A]=Enum.KeyCode.F11,[0x7B]=Enum.KeyCode.F12,[0x90]=Enum.KeyCode.NumLock,[0x91]=Enum.KeyCode.ScrollLock,[0xBA]=Enum.KeyCode.Semicolon,[0xBB]=Enum.KeyCode.Equals,[0xBC]=Enum.KeyCode.Comma,[0xBD]=Enum.KeyCode.Minus,[0xBE]=Enum.KeyCode.Period,[0xBF]=Enum.KeyCode.Slash,[0xC0]=Enum.KeyCode.Backquote,[0xDB]=Enum.KeyCode.LeftBracket,[0xDD]=Enum.KeyCode.RightBracket,[0xDE]=Enum.KeyCode.Quote} -- for keypress\r\nlocal Fonts = { -- Drawing.Fonts\r\n\t[0] = Enum.Font.Arial,\r\n\t[1] = Enum.Font.BuilderSans,\r\n\t[2] = Enum.Font.Gotham,\r\n\t[3] = Enum.Font.RobotoMono\r\n}\r\n-- rconsole\r\nlocal MessageColor = colors['WHITE']\r\nlocal ConsoleClone = nil\r\n-- functions\r\nlocal function Descendants(tbl)\r\n\tlocal descendants = {}\r\n\r\n\tlocal function process_table(subtbl, prefix)\r\n\t\tfor k, v in pairs(subtbl) do\r\n\t\t\tlocal index = prefix and (prefix .. \".\" .. tostring(k)) or tostring(k)\r\n\t\t\tdescendants[index] = v\r\n\t\t\tif type(v) == 'table' then\r\n\t\t\t\tprocess_table(v, index)\r\n\t\t\telse\r\n\t\t\t\tdescendants[index] = v\r\n\t\t\tend\r\n\t\tend\r\n\tend\r\n\r\n\tif type(tbl) ~= 'table' then\r\n\t\tdescendants[tostring(1)] = tbl\r\n\telse\r\n\t\tprocess_table(tbl, nil)\r\n\tend\r\n\r\n\treturn descendants\r\nend\r\n\r\nlocal function rawlength(tbl)\r\n\tlocal a = 0\r\n\tfor i, v in pairs(tbl) do\r\n\t\ta = a + 1\r\n\tend\r\n\treturn a\r\nend\r\n\r\nlocal function ToPairsLoop(code)\r\n\tfor _, p in ipairs(patterns2) do\r\n\t\tcode = code:gsub(p.pattern, function(var1, var2, tbl)\r\n\t\t\treturn p.format:format(var1, var2, tbl)\r\n\t\tend)\r\n\tend\r\n\treturn code\r\nend\r\n\r\nlocal function SafeOverride(a, b, c) --[[ Index, Data, Should override ]]\r\n\tif getgenv()[a] and not c then return 1 end\r\n\tgetgenv()[a] = b\r\n\r\n\treturn 2\r\nend\r\n\r\nlocal function toluau(code)\r\n\tfor _, p in ipairs(patterns) do\r\n\t\tcode = code:gsub(p.pattern, function(var, value)\r\n\t\t\treturn p.format:format(var, var, value)\r\n\t\tend)\r\n\tend\r\n\tcode = ToPairsLoop(code)\r\n\treturn code\r\nend\r\n\r\nlocal function handleInput(input, Object)\r\n\tif isDragging then\r\n\t\tlocal delta = input.Position - dragStartPos\r\n\t\tObject.Position = UDim2.new(\r\n\t\t\tframeStartPos.X.Scale, \r\n\t\t\tframeStartPos.X.Offset + delta.X, \r\n\t\t\tframeStartPos.Y.Scale, \r\n\t\t\tframeStartPos.Y.Offset + delta.Y\r\n\t\t)\r\n\tend\r\nend\r\n\r\nlocal function startDrag(input, Object)\r\n\tisDragging = true\r\n\tdragStartPos = input.Position\r\n\tframeStartPos = Object.Position\r\n\tinput.UserInputState = Enum.UserInputState.Begin\r\nend\r\n\r\nlocal function stopDrag(input)\r\n\tisDragging = false\r\n\tinput.UserInputState = Enum.UserInputState.End\r\nend\r\n\r\n-- Main Functions\r\nfunction QueueGetIdentity()\r\n\tprintidentity()\r\n\ttask.wait(.1)\r\n\tlocal messages = Log:GetLogHistory()\r\n\tlocal message;\r\n\tif not messages[#messages].message:match(\"Current identity is\") then\r\n\t\tfor i = #messages, 1, -1 do\r\n\t\t\tif messages[i].message:match(\"Current identity is %d\") then\r\n\t\t\t\tmessage = messages[i].message\r\n\t\t\t\tbreak\r\n\t\t\tend\r\n\t\tend\r\n\telse\r\n\t\tmessage = messages[#messages].message:match('Current identity is %d'):gsub(\"Current identity is \", '')\r\n\tend\r\n\tIdentity = tonumber(message)\r\nend\r\nlocal Queue = {}\r\nQueue.__index = Queue\r\nfunction Queue.new()\r\n\tlocal self = setmetatable({}, Queue)\r\n\tself.elements = {}\r\n\treturn self\r\nend\r\n\r\nfunction Queue:Queue(element)\r\n\ttable.insert(self.elements, element)\r\nend\r\n\r\nfunction Queue:Update()\r\n\tif #self.elements == 0 then\r\n\t\treturn nil\r\n\tend\r\n\treturn table.remove(self.elements, 1)\r\nend\r\n\r\nfunction Queue:IsEmpty()\r\n\treturn #self.elements == 0\r\nend\r\nfunction Queue:Current()\r\n\treturn self.elements\r\nend\r\n\r\n-- Events\r\ngame.DescendantRemoving:Connect(function(des)\r\n\ttable.insert(Instances, des)\r\n\tCache[des] = 'REMOVE'\r\nend)\r\ngame.DescendantAdded:Connect(function(des)\r\n\tCache[des] = true\r\nend)\r\ngame:GetService(\"UserInputService\").WindowFocused:Connect(function()\r\n\tactive = true\r\nend)\r\n\r\ngame:GetService(\"UserInputService\").WindowFocusReleased:Connect(function()\r\n\tactive = false\r\nend)\r\n\r\ngame:GetService(\"UserInputService\").InputChanged:Connect(function(input)\r\n\tif not input then return end\r\n\tif isDragging and input.UserInputType == Enum.UserInputType.MouseMovement and ConsoleClone then\r\n\t\thandleInput(input, ConsoleClone.ConsoleFrame)\r\n\tend\r\nend)\r\n\r\ngame:GetService(\"UserInputService\").InputEnded:Connect(function(input)\r\n\tif not input then return end\r\n\tif input.UserInputType == Enum.UserInputType.MouseButton1 then\r\n\t\tstopDrag(input)\r\n\tend\r\nend)\r\n-- Libraries\r\nfuncs.base64 = {}\r\nfuncs.crypt = {hex={},url={}}\r\nfuncs.syn = {}\r\nfuncs.syn_backup = {}\r\nfuncs.http = {}\r\nfuncs.Drawing = {}\r\nfuncs.cache = {}\r\nfuncs.string = string\r\nfuncs.debug = debug\r\nfuncs.debug.getinfo = function(t)\r\n\tlocal CurrentLine = tonumber(debug.info(t, 'l'))\r\n\tlocal Source = debug.info(t, 's')\r\n\tlocal name = debug.info(t, 'n')\r\n\tlocal numparams, isvrg = debug.info(t, 'a')\r\n\tif #name == 0 then name = nil end\r\n\tlocal a, b = debug.info(t, 'a')\r\n\treturn {\r\n\t\t['currentline'] = CurrentLine,\r\n\t\t['source'] = Source,\r\n\t\t['name'] = tostring(name),\r\n\t\t['numparams'] = tonumber(numparams),\r\n\t\t['is_vararg'] = isvrg and 1 or 0,\r\n\t\t['short_src'] = tostring(Source:sub(1, 60)),\r\n\t\t['what'] = Source == '[C]' and 'C' or 'Lua',\r\n\t\t['func'] = t,\r\n\t\t['nups'] = 0 -- i CANNOT make an upvalue thingy\r\n\t}\r\nend\r\n\r\nfuncs.Drawing.Fonts = {\r\n\t['UI'] = 0,\r\n\t['System'] = 1,\r\n\t['Plex'] = 2,\r\n\t['Monospace'] = 3\r\n}\r\n\r\n\r\nlocal ClipboardQueue = Queue.new()\r\nlocal ConsoleQueue = Queue.new()\r\nlocal getgenv = getgenv or function() return getfenv(1) end\r\ngetgenv().getgenv = getgenv\r\n\r\n-- [[ Functions ]]\r\n\r\n--[[funcs.cloneref = function(a)\r\n    if not clonerefs[a] then clonerefs[a] = {} end\r\n    local Clone = {}\r\n\r\n    local mt = {__type='Instance'} -- idk if this works ;(\r\n\r\n    mt.__tostring = function()\r\n        return a.Name\r\n    end\r\n\r\n    mt.__index = function(_, key)\r\n        local thing = funcs.debug.getmetatable(a)[key]\r\n        if type(thing) == 'function' then\r\n            return function(...)\r\n                return thing(a, ...)\r\n            end\r\n        else\r\n            return thing\r\n        end\r\n    end\r\n    mt.__newindex = function(_, key, value)\r\n     a[key] = value\r\n    end\r\n    mt.__metatable = getmetatable(a)\r\n    mt.__len = function(_)\r\n     return error('attempt to get length of a userdata value')\r\n    end\r\n\r\n    setmetatable(Clone, mt)\r\n\r\n    table.insert(clonerefs[a], Clone)\r\n\r\n    return Clone\r\nend\r\nTEMPORARY REMOVED UNTIL WE FIND A FIX\r\n]]\r\n-- // The rest is made by me.\r\n\r\nfuncs.compareinstances = function(a, b)\r\n\tif not clonerefs[a] then\r\n\t\treturn a == b\r\n\telse\r\n\t\tif table.find(clonerefs[a], b) then return true end\r\n\tend\r\n\treturn false\r\nend\r\n\r\nfuncs.clonefunction = function(a)\r\n\tassert(type(a)=='function', 'Invalid parameter 1 to \\'clonefunction\\', function expected got ' .. typeof(a))\r\n\r\n\treturn function(...)\r\n\t\tlocal Copy = Sandbox(a, {}, {}, {}, 0, {...})\r\n\t\treturn Copy.return_value\r\n\tend\r\nend\r\n\r\nfuncs.cache.iscached = function(thing)\r\n\treturn Cache[thing] ~= 'REMOVE' and thing:IsDescendantOf(game) or false -- If it's cache isnt 'REMOVE' and its a des of game (Usually always true) or if its cache is 'REMOVE' then its false.\r\nend\r\nfuncs.cache.invalidate = function(thing)\r\n\tCache[thing] = 'REMOVE'\r\n\tthing.Parent = nil\r\nend\r\nfuncs.cache.replace = function(a, b)\r\n\tif Cache[a] then\r\n\t\tCache[a] = b\r\n\tend\r\n\tlocal n, p = a.Name, a.Parent -- name, parent\r\n\tb.Parent = p\r\n\tb.Name = n\r\n\ta.Parent = nil\r\nend\r\nfuncs.deepclone = function(a)\r\n\tlocal Result = {}\r\n\tfor i, v in pairs(a) do\r\n\t\tif type(v) == 'table' then\r\n\t\t\tResult[i] = funcs.deepclone(v)\r\n\t\tend\r\n\t\tResult[i] = v\r\n\tend\r\n\treturn Result\r\nend\r\n--[[ The base64 functions were made by https://scriptblox.com/u/yofriendfromschool1 , Credits to him.]]\r\nfuncs.base64.encode = function(data)\r\n\tlocal letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/'\r\n\treturn ((data:gsub('.', function(x) \r\n\t\tlocal r,b='',x:byte()\r\n\t\tfor i=8,1,-1 do r=r..(b%2^i-b%2^(i-1)>0 and '1' or '0') end\r\n\t\treturn r;\r\n\tend)..'0000'):gsub('%d%d%d?%d?%d?%d?', function(x)\r\n\t\tif (#x < 6) then return '' end\r\n\t\tlocal c=0\r\n\t\tfor i=1,6 do c=c+(x:sub(i,i)=='1' and 2^(6-i) or 0) end\r\n\t\treturn letters:sub(c+1,c+1)\r\n\tend)..({ '', '==', '=' })[#data%3+1])\r\nend\r\nfuncs.base64.decode = function(data)\r\n\tlocal b = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/'\r\n\tdata = string.gsub(data, '[^'..b..'=]', '')\r\n\treturn (data:gsub('.', function(x)\r\n\t\tif x == '=' then return '' end\r\n\t\tlocal r, f = '', (b:find(x) - 1)\r\n\t\tfor i = 6, 1, -1 do\r\n\t\t\tr = r .. (f % 2^i - f % 2^(i - 1) > 0 and '1' or '0')\r\n\t\tend\r\n\t\treturn r;\r\n\tend):gsub('%d%d%d?%d?%d?%d?%d?%d?', function(x)\r\n\t\tif #x ~= 8 then return '' end\r\n\t\tlocal c = 0\r\n\t\tfor i = 1, 8 do\r\n\t\t\tc = c + (x:sub(i, i) == '1' and 2^(8 - i) or 0)\r\n\t\tend\r\n\t\treturn string.char(c)\r\n\tend))\r\nend\r\n\r\nfuncs.loadstring = function(code)\r\n\tlocal s1, val1 = pcall(function()\r\n\t\treturn loadstring('local v1=15;v1+=1;return v1')()\r\n\tend)\r\n\tlocal s2, val2 = pcall(function()\r\n\t\treturn loadstring('local v1={\"a\"};for i, v in v1 do return v end')()\r\n\tend)\r\n\tif val1 ~= 16 and val2 ~= 'a' then\r\n\t\treturn oldLoader(toluau(code))\r\n\telse\r\n\t\treturn oldLoader(code)\r\n\tend\r\nend\r\nfuncs.getgenv = getgenv\r\nfuncs.crypt.base64 = funcs.base64\r\nfuncs.crypt.base64encode = funcs.base64.encode\r\nfuncs.crypt.base64decode = funcs.base64.decode\r\nfuncs.crypt.base64_encode = funcs.base64.encode\r\nfuncs.crypt.base64_decode = funcs.base64.decode\r\nfuncs.base64_encode = funcs.base64.encode\r\nfuncs.base64_decode = funcs.base64.decode\r\n\r\nfuncs.crypt.hex.encode = function(txt)\r\n\ttxt = tostring(txt)\r\n\tlocal hex = ''\r\n\tfor i = 1, #txt do\r\n\t\thex = hex .. string.format(\"%02x\", string.byte(txt, i))\r\n\tend\r\n\treturn hex\r\nend\r\nfuncs.crypt.hex.decode = function(hex)\r\n\thex = tostring(hex)\r\n\tlocal text = \"\"\r\n\tfor i = 1, #hex, 2 do\r\n\t\tlocal byte_str = string.sub(hex, i, i+1)\r\n\t\tlocal byte = tonumber(byte_str, 16)\r\n\t\ttext = text .. string.char(byte)\r\n\tend\r\n\treturn text\r\nend\r\nfuncs.crypt.url.encode = function(a)\r\n\treturn game:GetService(\"HttpService\"):UrlEncode(a)\r\nend\r\nfuncs.crypt.url.decode = function(a)\r\n\ta = tostring(a)\r\n\ta = string.gsub(a, \"+\", \" \")\r\n\ta = string.gsub(a, \"%%(%x%x)\", function(hex)\r\n\t\treturn string.char(tonumber(hex, 16))\r\n\tend)\r\n\ta = string.gsub(a, \"\\r\\n\", \"\\n\")\r\n\treturn a\r\nend\r\nfuncs.crypt.generatekey = function(optionalSize)\r\n\tlocal key = ''\r\n\tlocal a = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/'\r\n\tfor i = 1, optionalSize or 32 do local n = math.random(1, #a) key = key .. a:sub(n, n) end\r\n\treturn funcs.base64.encode(key)\r\nend\r\nfuncs.crypt.generatebytes = function(size)\r\n\tif type(size) ~= 'number' then return error('missing arguement #1 to \\'generatebytes\\' (number expected)') end\r\n\treturn funcs.crypt.generatekey(size)\r\nend\r\nfuncs.crypt.encrypt = function(a, b)\r\n\tlocal result = {}\r\n\ta = tostring(a) b = tostring(b)\r\n\tfor i = 1, #a do\r\n\t\tlocal byte = string.byte(a, i)\r\n\t\tlocal keyByte = string.byte(b, (i - 1) % #b + 1)\r\n\t\ttable.insert(result, string.char(bit32.bxor(byte, keyByte)))\r\n\tend\r\n\treturn table.concat(result)\r\nend\r\nfuncs.crypt.decrypt = funcs.crypt.encrypt\r\nfuncs.crypt.random = function(len)\r\n\treturn funcs.crypt.generatekey(len)\r\nend\r\n\r\nfuncs.isrbxactive = function()\r\n\treturn active\r\nend\r\nfuncs.isgameactive = funcs.isrbxactive\r\nfuncs.gethui = function()\r\n\tlocal s, H = pcall(function()\r\n\t\treturn game:GetService(\"CoreGui\").RobloxGui\r\n\tend)\r\n\tif H then\r\n\t\tif not hui.Parent then\r\n\t\t\thui.Parent = H.Parent\r\n\t\tend\r\n\t\treturn hui\r\n\telse\r\n\t\tif not hui.Parent then\r\n\t\t\thui.Parent = game:GetService(\"Players\").LocalPlayer.PlayerGui\r\n\t\tend\r\n\tend\r\n\treturn hui\r\nend\r\nif getgenv().getrenv and #getgenv().getrenv() == 0 or not getgenv().getrenv then\r\n\tgetgenv().getrenv = nil\r\n\tgetgenv().getrenv = function() -- Override incognito's getrenv\r\n\t\treturn renv -- couldn't think of a better way to implement it\r\n\tend\r\nend\r\nfuncs.setclipboard = function(data)\r\n\trepeat task.wait() until ClipboardQueue:Current()[1] == data or ClipboardQueue:IsEmpty()\r\n\tClipboardQueue:Queue(data)\r\n\tlocal old = game:GetService(\"UserInputService\"):GetFocusedTextBox()\r\n\tlocal copy = ClipboardQueue:Current()[1]\r\n\tClipboardBox:CaptureFocus()\r\n\tClipboardBox.Text = copy\r\n\r\n\tlocal KeyCode = Enum.KeyCode\r\n\tlocal Keys = {KeyCode.RightControl, KeyCode.A}\r\n\tlocal Keys2 = {KeyCode.RightControl, KeyCode.C, KeyCode.V}\r\n\r\n\tfor _, v in ipairs(Keys) do\r\n\t\tvim:SendKeyEvent(true, v, false, game)\r\n\t\ttask.wait()\r\n\tend\r\n\tfor _, v in ipairs(Keys) do\r\n\t\tvim:SendKeyEvent(false, v, false, game)\r\n\t\ttask.wait()\r\n\tend\r\n\tfor _, v in ipairs(Keys2) do\r\n\t\tvim:SendKeyEvent(true, v, false, game)\r\n\t\ttask.wait()\r\n\tend\r\n\tfor _, v in ipairs(Keys2) do\r\n\t\tvim:SendKeyEvent(false, v, false, game)\r\n\t\ttask.wait()\r\n\tend\r\n\tClipboardBox.Text = ''\r\n\tif old then old:CaptureFocus() end\r\n\ttask.wait(.18)\r\n\tClipboardQueue:Update()\r\nend\r\nfuncs.syn.write_clipboard = funcs.setclipboard\r\nfuncs.toclipboard = funcs.setclipboard\r\nfuncs.writeclipboard = funcs.setclipboard\r\nfuncs.setrbxclipboard = funcs.setclipboard\r\n\r\nfuncs.isrenderobj = function(thing)\r\n\treturn Drawings[thing] ~= nil\r\nend\r\nfuncs.getrenderproperty = function(thing, prop)\r\n\treturn thing[prop]\r\nend\r\nfuncs.setrenderproperty = function(thing, prop, val)\r\n\tlocal success, err = pcall(function()\r\n\t\tthing[prop] = val\r\n\tend)\r\n\tif not success and err then warn(err) end\r\nend\r\n\r\nfuncs.syn.protect_gui = function(gui)\r\n\tnames[gui] = {name=gui.Name,parent=gui.Parent}\r\n\tprotecteduis[gui] = gui\r\n\tgui.Name = funcs.crypt.random(64) -- 64 byte string, removed hashing cuz its useless lmao\r\n\tgui.Parent = gethui()\r\nend\r\nfuncs.syn.unprotect_gui = function(gui)\r\n\tif names[gui] then gui.Name = names[gui].name gui.Parent = names[gui].parent end protecteduis[gui] = nil\r\nend\r\nfuncs.syn.protectgui = funcs.syn.protect_gui\r\nfuncs.syn.unprotectgui = funcs.syn.unprotect_gui\r\nfuncs.syn.secure_call = function(func) -- Does not do a secure call, just pcalls it.\r\n\treturn pcall(func)\r\nend\r\n\r\n\r\nfuncs.isreadonly = function(tbl)\r\n\tif type(tbl) ~= 'table' then return false end\r\n\treturn table.isfrozen(tbl)\r\nend\r\nfuncs.setreadonly = function(tbl, cond)\r\n\tif cond then\r\n\t\ttable.freeze(tbl)\r\n\telse\r\n\t\treturn funcs.deepclone(tbl)\r\n\tend\r\nend\r\nfuncs.httpget = function(url)\r\n\treturn game:HttpGet(url)\r\nend\r\nfuncs.httppost = function(url, body, contenttype)\r\n\treturn game:HttpPostAsync(url, body, contenttype)\r\nend\r\nfuncs.request = function(args)\r\n\tlocal Body = nil\r\n\tlocal Timeout = 0\r\n\tlocal function callback(success, body)\r\n\t\tBody = body\r\n\t\tBody['Success'] = success\r\n\tend\r\n\tHttpService:RequestInternal(args):Start(callback)\r\n\twhile not Body and Timeout < 10 do\r\n\t\ttask.wait(.1)\r\n\t\tTimeout = Timeout + .1\r\n\tend\r\n\treturn Body\r\nend\r\nfuncs.mouse1click = function(x, y)\r\n\tx = x or 0\r\n\ty = y or 0\r\n\tvim:SendMouseButtonEvent(x, y, 0, true, game, false)\r\n\ttask.wait()\r\n\tvim:SendMouseButtonEvent(x, y, 0, false, game, false)\r\nend\r\nfuncs.mouse2click = function(x, y)\r\n\tx = x or 0\r\n\ty = y or 0\r\n\tvim:SendMouseButtonEvent(x, y, 1, true, game, false)\r\n\ttask.wait()\r\n\tvim:SendMouseButtonEvent(x, y, 1, false, game, false)\r\nend\r\nfuncs.mouse1press = function(x, y)\r\n\tx = x or 0\r\n\ty = y or 0\r\n\tvim:SendMouseButtonEvent(x, y, 0, true, game, false)\r\nend\r\nfuncs.mouse1release = function(x, y)\r\n\tx = x or 0\r\n\ty = y or 0\r\n\tvim:SendMouseButtonEvent(x, y, 0, false, game, false)\r\nend\r\nfuncs.mouse2press = function(x, y)\r\n\tx = x or 0\r\n\ty = y or 0\r\n\tvim:SendMouseButtonEvent(x, y, 1, true, game, false)\r\nend\r\nfuncs.mouse2release = function(x, y)\r\n\tx = x or 0\r\n\ty = y or 0\r\n\tvim:SendMouseButtonEvent(x, y, 1, false, game, false)\r\nend\r\nfuncs.mousescroll = function(x, y, a)\r\n\tx = x or 0\r\n\ty = y or 0\r\n\ta = a and true or false\r\n\tvim:SendMouseWheelEvent(x, y, a, game)\r\nend\r\nfuncs.keyclick = function(key)\r\n\tif typeof(key) == 'number' then\r\n\t\tif not keys[key] then return error(\"Key \"..tostring(key) .. ' not found!') end\r\n\t\tvim:SendKeyEvent(true, keys[key], false, game)\r\n\t\ttask.wait()\r\n\t\tvim:SendKeyEvent(false, keys[key], false, game)\r\n\telseif typeof(Key) == 'EnumItem' then\r\n\t\tvim:SendKeyEvent(true, key, false, game)\r\n\t\ttask.wait()\r\n\t\tvim:SendKeyEvent(false, key, false, game)\r\n\tend\r\nend\r\nfuncs.keypress = function(key)\r\n\tif typeof(key) == 'number' then\r\n\t\tif not keys[key] then return error(\"Key \"..tostring(key) .. ' not found!') end\r\n\t\tvim:SendKeyEvent(true, keys[key], false, game)\r\n\telseif typeof(Key) == 'EnumItem' then\r\n\t\tvim:SendKeyEvent(true, key, false, game)\r\n\tend\r\nend\r\nfuncs.keyrelease = function(key)\r\n\tif typeof(key) == 'number' then\r\n\t\tif not keys[key] then return error(\"Key \"..tostring(key) .. ' not found!') end\r\n\t\tvim:SendKeyEvent(false, keys[key], false, game)\r\n\telseif typeof(Key) == 'EnumItem' then\r\n\t\tvim:SendKeyEvent(false, key, false, game)\r\n\tend\r\nend\r\nfuncs.mousemoverel = function(relx, rely)\r\n\tlocal Pos = workspace.CurrentCamera.ViewportSize\r\n\trelx = relx or 0\r\n\trely = rely or 0\r\n\tlocal x = Pos.X * relx\r\n\tlocal y = Pos.Y * rely\r\n\tvim:SendMouseMoveEvent(x, y, game)\r\nend\r\nfuncs.mousemoveabs = function(x, y)\r\n\tx = x or 0 y = y or 0\r\n\tvim:SendMouseMoveEvent(x, y, game)\r\nend\r\n\r\nfuncs.newcclosure = function(f)\r\n\tlocal a = coroutine.wrap(function(...)\r\n\t\tlocal b = {coroutine.yield()}\r\n\t\twhile true do\r\n\t\t\tb = {coroutine.yield(f(table.unpack(b)))}\r\n\t\tend\r\n\tend)\r\n\ta()\r\n\treturn a\r\nend -- Credits to myworld AND EMPER for this\r\nfuncs.iscclosure = function(fnc) return debug.info(fnc, 's') == '[C]' end\r\nfuncs.islclosure = function(func) return not funcs.iscclosure(func) end\r\nfuncs.isexecutorclosure = function(fnc)\r\n\tlocal found = false\r\n\tfor i, v in pairs(getgenv()) do\r\n\t\tif v == fnc then return true end\r\n\tend\r\n\tfor i = 1, math.huge do\r\n\t\tlocal s, env = pcall(getfenv, i)\r\n\t\tif not s or found then break end\r\n\t\tif type(env) == \"table\" then\r\n\t\t\tfor _, v in pairs(env) do\r\n\t\t\t\tif v == fnc then\r\n\t\t\t\t\tfound = true\r\n\t\t\t\t\tbreak\r\n\t\t\t\tend\r\n\t\t\tend\r\n\t\tend\r\n\t\tif found then break end\r\n\tend\r\n\r\n\treturn found\r\nend\r\nfuncs.newlclosure = function(fnc)\r\n\treturn function(...) return fnc(...) end\r\nend\r\nfuncs.clonefunction = funcs.newlclosure\r\nfuncs.is_l_closure = funcs.islclosure\r\nfuncs.is_executor_closure = funcs.isexecutorclosure\r\nfuncs.isourclosure = funcs.isexecutorclosure\r\nfuncs.isexecclosure = funcs.isexecutorclosure\r\nfuncs.checkclosure = funcs.isourclosure\r\n\r\n--[[ File system is something i do not know how to implement in roblox lua.\r\nUPDATE AT 18/5/2024:\r\nI figured out i can use temp file system with tables.\r\n]]\r\nlocal files = {}\r\n\r\nlocal function startswith(a, b)\r\n\treturn a:sub(1, #b) == b\r\nend\r\nlocal function endswith(hello, lo) \r\n\treturn hello:sub(#hello - #lo + 1, #hello) == lo\r\nend\r\n\r\nfuncs.writefile = function(path, content)\r\n\tlocal Path = path:split('/')\r\n\tlocal CurrentPath = {}\r\n\tfor i = 1, #Path do\r\n\t\tlocal a = Path[i]\r\n\t\tCurrentPath[i] = a\r\n\t\tif not files[a] and i ~= #Path then\r\n\t\t\tfiles[table.concat(CurrentPath, '/')] = {}\r\n\t\t\tfiles[table.concat(CurrentPath, '/') .. '/'] = files[table.concat(CurrentPath, '/')]\r\n\t\telseif i == #Path then\r\n\t\t\tfiles[table.concat(CurrentPath, '/')] = tostring(content)\r\n\t\tend\r\n\tend\r\nend\r\nfuncs.makefolder = function(path)\r\n\tfiles[path] = {}\r\n\tfiles[path .. '/'] = files[path]\r\nend\r\nfuncs.isfolder = function(path)\r\n\treturn type(files[path]) == 'table'\r\nend\r\nfuncs.isfile = function(path)\r\n\treturn type(files[path]) == 'string'\r\nend\r\nfuncs.readfile = function(path)\r\n\treturn files[path]\r\nend\r\nfuncs.appendfile = function(path, text2)\r\n\tfuncs.writefile(path, funcs.readfile(path) .. text2)\r\nend\r\nfuncs.loadfile = function(path)\r\n\tlocal content = funcs.readfile(path)\r\n\tif not content then error('File \\'' .. tostring(path) .. '\\' does not exist.') return '' end\r\n\tlocal s, func = pcall(function()\r\n\t\treturn loadstring(content)\r\n\tend)\r\n\treturn func, not s and func or nil\r\nend\r\nfuncs.delfolder = function(path)\r\n\tlocal f = files[path]\r\n\tif type(f) == 'table' then files[path] = nil end\r\nend\r\nfuncs.delfile = function(path)\r\n\tlocal f = files[path]\r\n\tif type(f) == 'string' then files[path] = nil end\r\nend\r\nfuncs.listfiles = function(path)\r\n\tif not path or path == '' then\r\n\t\tlocal Files = {}\r\n\t\tfor i, v in pairs(files) do\r\n\t\t\tif #i:split('/') == 1 then table.insert(Files, i) end\r\n\t\tend\r\n\t\treturn Files\r\n\tend\r\n\tif type(files[path]) ~= 'table' then return error(path .. ' is not a folder.') end\r\n\tlocal Files = {}\r\n\tfor i, v in pairs(files) do\r\n\t\tif startswith(i, path .. '/') and not endswith(i, '/') and i ~= path and #i:split('/') == (#path:split('/') + 1) then table.insert(Files, i) end\r\n\tend\r\n\treturn Files\r\nend\r\n\r\nfuncs.http.request = funcs.request\r\nfuncs.syn.crypt = funcs.crypt\r\nfuncs.syn.crypto = funcs.crypt\r\nfuncs.syn_backup = funcs.syn\r\n\r\n\r\nfuncs.getexecutorname = function()\r\n\treturn 'SigmaSploit Z'\r\nend\r\nfuncs.identifyexecutor = function()\r\n\treturn 'SigmaSploit Z | ', ExecutorVersion\r\nend\r\nfuncs.http_request = getgenv().request or funcs.request\r\nfuncs.getscripts = function()\r\n\tlocal a = {};for i, v in pairs(game:GetDescendants()) do if v:IsA(\"LocalScript\") or v:IsA(\"ModuleScript\") then table.insert(a, v) end end return a\r\nend\r\nfuncs.get_scripts = function()\r\n\tlocal a = {};for i, v in pairs(game:GetDescendants()) do if v:IsA(\"LocalScript\") or v:IsA(\"ModuleScript\") then table.insert(a, v) end end return a\r\nend\r\nfuncs.getmodules = function()\r\n\tlocal a = {};for i, v in pairs(game:GetDescendants()) do if v:IsA(\"ModuleScript\") then table.insert(a, v) end end return a\r\nend\r\nfuncs.getloadedmodules = funcs.getmodules\r\nfuncs.make_readonly = funcs.setreadonly\r\nfuncs.makereadonly = funcs.setreadonly\r\nfuncs.base64encode = funcs.crypt.base64encode\r\nfuncs.base64decode = funcs.crypt.base64decode\r\nfuncs.clonefunc = funcs.clonefunction\r\nfuncs.setsimulationradius = function(Distance, MaxDistance)\r\n\tlocal LocalPlayer = game:GetService(\"Players\").LocalPlayer\r\n\tassert(type(Distance)=='number','Invalid arguement #1 to \\'setsimulationradius\\', Number expected got ' .. type(Distance))\r\n\tLocalPlayer.SimulationRadius = type(Distance) == 'number' and Distance or LocalPlayer.SimulationRadius\r\n\tif MaxDistance then\r\n\t\tassert(type(MaxDistance)=='number','Invalid arguement #2 to \\'setsimulationradius\\', Number expected got ' .. type(MaxDistance))\r\n\t\tLocalPlayer.MaxSimulationDistance = MaxDistance\r\n\tend\r\nend\r\nfuncs.getinstances = function()\r\n\treturn game:GetDescendants()\r\nend\r\nfuncs.getnilinstances = function()\r\n\treturn Instances\r\nend\r\nfuncs.iswriteable = function(tbl)\r\n\treturn not table.isfrozen(tbl)\r\nend\r\nfuncs.makewriteable = function(tbl)\r\n\treturn funcs.setreadonly(tbl, false)\r\nend\r\nfuncs.isscriptable = function(self, prop)\r\n\treturn table.find(Hidden, prop) == nil\r\nend\r\nfuncs.getrunningscripts = function()\r\n\tlocal scripts = {}\r\n\tfor _, v in pairs(funcs.getinstances()) do\r\n\t\tif v:IsA(\"LocalScript\") and v.Enabled then table.insert(scripts, v) end\r\n\tend\r\n\treturn scripts\r\nend\r\nfuncs.fireproximityprompt = function(p)\r\n\tlocal Hold, Distance, Enabled, Thing, CFrame1= p.HoldDuration, p.MaxActivationDistance, p.Enabled, p.RequiresLineOfSight, nil\r\n\t-- Make it activatable from anywhere\r\n\tp.MaxActivationDistance = math.huge\r\n\t-- Make it take 0 seconds to activate\r\n\tp.HoldDuration = 0\r\n\t-- Make it enabled (so you can activate it)\r\n\tp.Enabled = true\r\n\t-- Disable RequiresLineOfSight\r\n\tp.RequiresLineOfSight = false\r\n\t-- Show the thingy\r\n\tlocal function get()\r\n\t\tlocal classes = {'BasePart', 'Part', 'MeshPart'}\r\n\t\tfor _, v in pairs(classes) do\r\n\t\t\tif p:FindFirstAncestorOfClass(v) then\r\n\t\t\t\treturn p:FindFirstAncestorOfClass(v)\r\n\t\t\tend\r\n\t\tend\r\n\tend\r\n\tlocal a = get()\r\n\tif not a then\r\n\t\tlocal parent = p.Parent\r\n\t\tp.Parent = Instance.new(\"Part\", workspace)\r\n\t\ta = p.Parent\r\n\tend\r\n\tCFrame1 = a.CFrame\r\n\ta.CFrame = game:GetService(\"Players\").LocalPlayer.Character.Head.CFrame + game:GetService(\"Players\").LocalPlayer.Character.Head.CFrame.LookVector * 2\r\n\ttask.wait()\r\n\tp:InputHoldBegin()\r\n\ttask.wait()\r\n\tp:InputHoldEnd()\r\n\tp.HoldDuration = Hold\r\n\tp.MaxActivationDistance = Distance\r\n\tp.Enabled = Enabled\r\n\tp.RequiresLineOfSight = Thing\r\n\ta.CFrame = CFrame1\r\n\tp.Parent = parent or p.Parent\r\nend\r\nfuncs.firetouchinterest = function(toTouch, TouchWith, on)\r\n\tif on == 0 then return end\r\n\tif toTouch.ClassName == 'TouchTransmitter' then\r\n\t\tlocal function get()\r\n\t\t\tlocal classes = {'BasePart', 'Part', 'MeshPart'}\r\n\t\t\tfor _, v in pairs(classes) do\r\n\t\t\t\tif toTouch:FindFirstAncestorOfClass(v) then\r\n\t\t\t\t\treturn toTouch:FindFirstAncestorOfClass(v)\r\n\t\t\t\tend\r\n\t\t\tend\r\n\t\tend\r\n\t\ttoTouch = get()\r\n\tend\r\n\tlocal cf = toTouch.CFrame\r\n\tlocal anc = toTouch.CanCollide\r\n\ttoTouch.CanCollide = false\r\n\ttoTouch.CFrame = TouchWith.CFrame\r\n\ttask.wait()\r\n\ttoTouch.CFrame = cf\r\n\ttoTouch.CanCollide = anc\r\nend -- i admit its kinda bad dont fucking attack me\r\n\r\n-- SHA256 Hashing\r\nlocal function str2hexa(a)return string.gsub(a,\".\",function(b)return string.format(\"%02x\",string.byte(b))end)end;local function num2s(c,d)local a=\"\"for e=1,d do local f=c%256;a=string.char(f)..a;c=(c-f)/256 end;return a end;local function s232num(a,e)local d=0;for g=e,e+3 do d=d*256+string.byte(a,g)end;return d end;local function preproc(h,i)local j=64-(i+9)%64;i=num2s(8*i,8)h=h..\"\\128\"..string.rep(\"\\0\",j)..i;assert(#h%64==0)return h end;local function k(h,e,l)local m={}local n={0x428a2f98,0x71374491,0xb5c0fbcf,0xe9b5dba5,0x3956c25b,0x59f111f1,0x923f82a4,0xab1c5ed5,0xd807aa98,0x12835b01,0x243185be,0x550c7dc3,0x72be5d74,0x80deb1fe,0x9bdc06a7,0xc19bf174,0xe49b69c1,0xefbe4786,0x0fc19dc6,0x240ca1cc,0x2de92c6f,0x4a7484aa,0x5cb0a9dc,0x76f988da,0x983e5152,0xa831c66d,0xb00327c8,0xbf597fc7,0xc6e00bf3,0xd5a79147,0x06ca6351,0x14292967,0x27b70a85,0x2e1b2138,0x4d2c6dfc,0x53380d13,0x650a7354,0x766a0abb,0x81c2c92e,0x92722c85,0xa2bfe8a1,0xa81a664b,0xc24b8b70,0xc76c51a3,0xd192e819,0xd6990624,0xf40e3585,0x106aa070,0x19a4c116,0x1e376c08,0x2748774c,0x34b0bcb5,0x391c0cb3,0x4ed8aa4a,0x5b9cca4f,0x682e6ff3,0x748f82ee,0x78a5636f,0x84c87814,0x8cc70208,0x90befffa,0xa4506ceb,0xbef9a3f7,0xc67178f2}for g=1,16 do m[g]=s232num(h,e+(g-1)*4)end;for g=17,64 do local o=m[g-15]local p=bit.bxor(bit.rrotate(o,7),bit.rrotate(o,18),bit.rshift(o,3))o=m[g-2]local q=bit.bxor(bit.rrotate(o,17),bit.rrotate(o,19),bit.rshift(o,10))m[g]=(m[g-16]+p+m[g-7]+q)%2^32 end;local r,s,b,t,u,v,w,x=l[1],l[2],l[3],l[4],l[5],l[6],l[7],l[8]for e=1,64 do local p=bit.bxor(bit.rrotate(r,2),bit.rrotate(r,13),bit.rrotate(r,22))local y=bit.bxor(bit.band(r,s),bit.band(r,b),bit.band(s,b))local z=(p+y)%2^32;local q=bit.bxor(bit.rrotate(u,6),bit.rrotate(u,11),bit.rrotate(u,25))local A=bit.bxor(bit.band(u,v),bit.band(bit.bnot(u),w))local B=(x+q+A+n[e]+m[e])%2^32;x=w;w=v;v=u;u=(t+B)%2^32;t=b;b=s;s=r;r=(B+z)%2^32 end;l[1]=(l[1]+r)%2^32;l[2]=(l[2]+s)%2^32;l[3]=(l[3]+b)%2^32;l[4]=(l[4]+t)%2^32;l[5]=(l[5]+u)%2^32;l[6]=(l[6]+v)%2^32;l[7]=(l[7]+w)%2^32;l[8]=(l[8]+x)%2^32 end;funcs.crypt.hash=function(h)h=preproc(h,#h)local l={0x6a09e667,0xbb67ae85,0x3c6ef372,0xa54ff53a,0x510e527f,0x9b05688c,0x1f83d9ab,0x5be0cd19}for e=1,#h,64 do k(h,e,l)end;return str2hexa(num2s(l[1],4)..num2s(l[2],4)..num2s(l[3],4)..num2s(l[4],4)..num2s(l[5],4)..num2s(l[6],4)..num2s(l[7],4)..num2s(l[8],4))end\r\n\r\nfuncs.Drawing.new = function(Type) -- Drawing.new\r\n\tlocal baseProps = {\r\n\t\tVisible = false,\r\n\t\tColor = Color3.new(0,0,0),\r\n\t\tClassName = nil\r\n\t}\r\n\tif Type == 'Line' then\r\n\t\tlocal a = Instance.new(\"Frame\", Instance.new(\"ScreenGui\", DrawingDict))\r\n\t\ta.Visible = false\r\n\t\ta.Size = UDim2.new(0, 0, 0, 0)\r\n\t\ta.BackgroundColor3 = Color3.fromRGB(255, 255, 255)\r\n\t\ta.BackgroundTransparency = 1\r\n\t\ta.BorderSizePixel = 0\r\n\r\n\t\tlocal meta = baseProps\r\n\t\tmeta.ClassName = Type\r\n\t\tmeta.__index = {\r\n\t\t\tThickness = 1,\r\n\t\t\tFrom = Vector2.new(0, 0),\r\n\t\t\tTo = Vector2.new(0, 0),\r\n\t\t\tTransparency = 0,\r\n\t\t\tRemove = function()\r\n\t\t\t\tfor i, v in pairs(Drawings) do if v == meta then Drawings[i] = nil end end\r\n\t\t\t\ta:Destroy() \r\n\t\t\tend,\r\n\t\t\tDestroy = function()\r\n\t\t\t\tfor i, v in pairs(Drawings) do if v == meta then Drawings[i] = nil end end\r\n\t\t\t\ta:Destroy() \r\n\t\t\tend,\r\n\t\t\tupdateLine = function(self)\r\n\t\t\t\tif not a then return end\r\n\t\t\t\tlocal from = self.From\r\n\t\t\t\tlocal to = self.To\r\n\t\t\t\tlocal distance = (to - from).Magnitude\r\n\t\t\t\tlocal angle = math.deg(math.atan2(to.Y - from.Y, to.X - from.X))\r\n\r\n\t\t\t\ta.Size = UDim2.new(0, distance, 0, self.Thickness)\r\n\t\t\t\ta.Position = UDim2.new(0, from.X, 0, from.Y)\r\n\t\t\t\ta.Rotation = angle\r\n\t\t\tend\r\n\t\t}\r\n\r\n\t\tmeta.__newindex = function(self, key, value)\r\n\t\t\tif not self then return end\r\n\t\t\tif key == 'Thickness' and typeof(value) == 'number' then\r\n\t\t\t\trawset(self, key, value)\r\n\t\t\t\ta.Size = UDim2.new(0, (self.To - self.From).Magnitude, 0, value)\r\n\t\t\telseif key == 'Visible' and typeof(value) == 'boolean' then\r\n\t\t\t\trawset(self, key, value)\r\n\t\t\t\ta.Visible = value\r\n\t\t\telseif key == 'Color' and typeof(value) == 'Color3' then\r\n\t\t\t\trawset(self, key, value)\r\n\t\t\t\ta.BackgroundColor3 = value\r\n\t\t\telseif key == 'Transparency' and typeof(value) == 'number' and value <= 1 then\r\n\t\t\t\trawset(self, key, value)\r\n\t\t\t\ta.BackgroundTransparency = 1 - value\r\n\t\t\telseif key == 'From' and typeof(value) == 'Vector2' then\r\n\t\t\t\trawset(self, key, value)\r\n\t\t\t\tself:updateLine()\r\n\t\t\telseif key == 'To' and typeof(value) == 'Vector2' then\r\n\t\t\t\trawset(self, key, value)\r\n\t\t\t\tself:updateLine()\r\n\t\t\tend\r\n\t\tend\r\n\t\tlocal meta1 = setmetatable({}, meta)\r\n\t\tDrawings[meta1] = meta1\r\n\t\treturn meta1\r\n\telseif Type == 'Square' then\r\n\t\tlocal a = Instance.new(\"Frame\", DrawingDict)\r\n\t\ta.Visible = false\r\n\t\ta.Size = UDim2.new(0, 0, 0, 0)\r\n\t\ta.BackgroundColor3 = Color3.fromRGB(255, 255, 255)\r\n\t\ta.BackgroundTransparency = 1\r\n\t\ta.BorderSizePixel = 0\r\n\t\tlocal b = Instance.new(\"UIStroke\", a)\r\n\t\tb.Color = Color3.fromRGB(255, 255, 255)\r\n\t\tb.Enabled = true\r\n\r\n\t\tlocal meta = baseProps\r\n\t\tmeta.ClassName = Type\r\n\t\tmeta.__index = {\r\n\t\t\tSize = Vector2.new(0,0),\r\n\t\t\tPosition = Vector2.new(0, 0),\r\n\t\t\tRemove = function()\r\n\t\t\t\tfor i, v in pairs(Drawings) do if v == meta then Drawings[i] = nil end end\r\n\t\t\t\ta:Destroy() \r\n\t\t\tend,\r\n\t\t\tDestroy = function()\r\n\t\t\t\tfor i, v in pairs(Drawings) do if v == meta then Drawings[i] = nil end end\r\n\t\t\t\ta:Destroy() \r\n\t\t\tend,\r\n\t\t\tupdateSquare = function(self)\r\n\t\t\t\tif not a then return end\r\n\t\t\t\ta.Size = UDim2.new(0, self.Size.X, 0, self.Size.Y)\r\n\t\t\t\ta.Position = UDim2.new(0, self.Position.X, 0, self.Position.Y)\r\n\t\t\tend\r\n\t\t}\r\n\r\n\t\tmeta.__newindex = function(self, key, value)\r\n\t\t\tif not self then return end\r\n\t\t\tif key == 'Filled' and typeof(value) == 'boolean' then\r\n\t\t\t\trawset(self, key, value)\r\n\t\t\t\tb.Enabled = not value\r\n\t\t\t\ta.BackgroundTransparency = value and 0 or 1\r\n\t\t\telseif key == 'Visible' and typeof(value) == 'boolean' then\r\n\t\t\t\trawset(self, key, value)\r\n\t\t\t\ta.Visible = value\r\n\t\t\telseif key == 'Color' and typeof(value) == 'Color3' then\r\n\t\t\t\trawset(self, key, value)\r\n\t\t\t\ta.BackgroundColor3 = value\r\n\t\t\t\tb.Color = value\r\n\t\t\telseif key == 'Position' and typeof(value) == 'Vector2' then\r\n\t\t\t\trawset(self, key, value)\r\n\t\t\t\tself:updateSquare()\r\n\t\t\telseif key == 'Size' and typeof(value) == 'Vector2' then\r\n\t\t\t\trawset(self, key, value)\r\n\t\t\t\tself:updateSquare()\r\n\t\t\tend\r\n\t\tend\r\n\t\tlocal meta1 = setmetatable({}, meta)\r\n\t\tDrawings[meta1] = meta1\r\n\t\treturn meta1\r\n\telseif Type == 'Circle' then\r\n\t\tlocal a = Instance.new(\"Frame\", Instance.new(\"ScreenGui\", DrawingDict))\r\n\t\ta.Visible = false\r\n\t\ta.Size = UDim2.new(0, 0, 0, 0)\r\n\t\ta.BackgroundColor3 = Color3.fromRGB(255, 255, 255)\r\n\t\ta.BackgroundTransparency = 1\r\n\t\ta.BorderSizePixel = 0\r\n\t\tlocal b = Instance.new(\"UIStroke\", a)\r\n\t\tb.Color = Color3.fromRGB(255, 255, 255)\r\n\t\tb.Enabled = false\r\n\t\tb.Thickness = 1\r\n\t\tlocal c = Instance.new(\"UICorner\", a)\r\n\t\tc.CornerRadius = UDim.new(1, 0)\r\n\r\n\t\tlocal meta = baseProps\r\n\t\tmeta.ClassName = Type\r\n\t\tmeta.__index = {\r\n\t\t\tThickness = 1,\r\n\t\t\tFilled = false,\r\n\t\t\tNumSides = 0,\r\n\t\t\tRadius = 1,\r\n\t\t\tPosition = Vector2.new(0, 0),\r\n\t\t\tTransparency = 0,\r\n\t\t\tRemove = function()\r\n\t\t\t\tfor i, v in pairs(Drawings) do if v == meta then Drawings[i] = nil end end\r\n\t\t\t\ta:Destroy() \r\n\t\t\tend,\r\n\t\t\tDestroy = function()\r\n\t\t\t\tfor i, v in pairs(Drawings) do if v == meta then Drawings[i] = nil end end\r\n\t\t\t\ta:Destroy() \r\n\t\t\tend,\r\n\t\t\tupdateCircle = function(self)\r\n\t\t\t\tif not b or not a then return end\r\n\t\t\t\ta.Size = UDim2.new(0, self.Radius, 0, self.Radius)\r\n\t\t\t\ta.Position = UDim2.new(0, self.Position.X, 0, self.Position.Y)\r\n\t\t\t\tb.Enabled = not self\r\n\t\t\t\tb.Color = self.Color\r\n\t\t\tend\r\n\t\t}\r\n\r\n\t\tmeta.__newindex = function(self, key, value)\r\n\t\t\tif not self then return end\r\n\t\t\tif key == 'Thickness' and typeof(value) == 'number' then\r\n\t\t\t\trawset(self, key, value)\r\n\t\t\t\tb.Thickness = value\r\n\t\t\telseif key == 'Visible' and typeof(value) == 'boolean' then\r\n\t\t\t\trawset(self, key, value)\r\n\t\t\t\ta.Visible = value\r\n\t\t\telseif key == 'Color' and typeof(value) == 'Color3' then\r\n\t\t\t\trawset(self, key, value)\r\n\t\t\t\ta.BackgroundColor3 = value\r\n\t\t\t\ta.Color = value\r\n\t\t\telseif key == 'Transparency' and typeof(value) == 'number' then\r\n\t\t\t\trawset(self, key, value)\r\n\t\t\t\ta.BackgroundTransparency = 1 - value\r\n\t\t\telseif key == 'Position' and typeof(value) == 'Vector2' then\r\n\t\t\t\trawset(self, key, value)\r\n\t\t\t\tself:updateCircle()\r\n\t\t\telseif key == 'Radius' and typeof(value) == 'number' then\r\n\t\t\t\trawset(self, key, value)\r\n\t\t\t\tself:updateCircle()\r\n\t\t\telseif key == 'NumSides' and typeof(value) == 'number' then\r\n\t\t\t\trawset(self, key, value)\r\n\t\t\telseif key == 'Filled' and typeof(value) == 'boolean' then\r\n\t\t\t\trawset(self, key, value)\r\n\t\t\t\tself:updateCircle()\r\n\t\t\tend\r\n\t\tend\r\n\t\tlocal meta1 = setmetatable({}, meta)\r\n\t\tDrawings[meta1] = meta1\r\n\t\treturn meta1\r\n\telseif Type == 'Text' then\r\n\t\tlocal a = Instance.new(\"TextLabel\", DrawingDict)\r\n\t\ta.Visible = false\r\n\t\ta.Size = UDim2.new(0, 0, 0, 0)\r\n\t\ta.BackgroundColor3 = Color3.fromRGB(255, 255, 255)\r\n\t\ta.BackgroundTransparency = 1\r\n\t\ta.BorderSizePixel = 0\r\n\t\ta.TextStrokeColor3 = Color3.new(0,0,0)\r\n\t\ta.TextStrokeTransparency = 1\r\n\r\n\t\tlocal meta = baseProps\r\n\t\tmeta.ClassName = Type\r\n\t\tmeta.__index = {\r\n\t\t\tText = '',\r\n\t\t\tTransparency = 0,\r\n\t\t\tSize = 0,\r\n\t\t\tCenter = false,\r\n\t\t\tOutline = false,\r\n\t\t\tOutlineColor = Color3.new(0,0,0),\r\n\t\t\tPosition = Vector2.new(0,0),\r\n\t\t\tFont = 3,\r\n\t\t\tRemove = function()\r\n\t\t\t\tfor i, v in pairs(Drawings) do if v == meta then Drawings[i] = nil end end\r\n\t\t\t\ta:Destroy() \r\n\t\t\tend,\r\n\t\t\tDestroy = function()\r\n\t\t\t\tfor i, v in pairs(Drawings) do if v == meta then Drawings[i] = nil end end\r\n\t\t\t\ta:Destroy() \r\n\t\t\tend,\r\n\t\t\tupdateText = function(self)\r\n\t\t\t\tif not a then return end\r\n\t\t\t\ta.TextScaled = true\r\n\t\t\t\ta.Size = UDim2.new(0, self.Size * 3, 0, self.Size / 2)\r\n\t\t\t\ta.Position = UDim2.new(0, self.Position.X, 0, self.Position.Y)\r\n\t\t\t\ta.Text = self.Text\r\n\t\t\t\ta.Font = Fonts[self.Font]\r\n\t\t\t\ta.Visible = self.Visible\r\n\t\t\t\ta.TextColor3 = self.Color\r\n\t\t\t\ta.TextTransparency = 1 - self.Transparency\r\n\t\t\t\ta.BorderSizePixel = self.Outline and 1 or 0\r\n\t\t\t\tif self.Center then\r\n\t\t\t\t\ta.TextXAlignment = Enum.TextXAlignment.Center\r\n\t\t\t\t\ta.TextYAlignment = Enum.TextYAlignment.Center\r\n\t\t\t\telse\r\n\t\t\t\t\ta.TextXAlignment = Enum.TextXAlignment.Left\r\n\t\t\t\t\ta.TextYAlignment = Enum.TextYAlignment.Top\r\n\t\t\t\tend\r\n\t\t\t\ta.TextStrokeTransparency = self.Outline and 0 or 1\r\n\t\t\t\ta.TextStrokeColor3 = self.OutlineColor\r\n\t\t\tend\r\n\t\t}\r\n\r\n\t\tmeta.__newindex = function(self, key, value)\r\n\t\t\tif not self then return end\r\n\t\t\tif key == 'Text' and typeof(value) == 'string' then\r\n\t\t\t\trawset(self, key, value)\r\n\t\t\telseif key == 'Visible' and typeof(value) == 'boolean' then\r\n\t\t\t\trawset(self, key, value)\r\n\t\t\t\ta.Visible = value\r\n\t\t\telseif key == 'Color' and typeof(value) == 'Color3' then\r\n\t\t\t\trawset(self, key, value)\r\n\t\t\telseif key == 'Transparency' and typeof(value) == 'number' then\r\n\t\t\t\trawset(self, key, value)\r\n\t\t\telseif key == 'Position' and typeof(value) == 'Vector2' then\r\n\t\t\t\trawset(self, key, value)\r\n\t\t\telseif key == 'Size' and typeof(value) == 'number' then\r\n\t\t\t\trawset(self, key, value)\r\n\t\t\telseif key == 'Outline' and typeof(value) == 'boolean' then\r\n\t\t\t\trawset(self, key, value)\r\n\t\t\telseif key == 'Center' and typeof(value) == 'boolean' then\r\n\t\t\t\trawset(self, key, value)\r\n\t\t\telseif key == 'OutlineColor' and typeof(value) == 'Color3' then\r\n\t\t\t\trawset(self, key, value)\r\n\t\t\telseif key == 'Font' and typeof(value) == 'number' then\r\n\t\t\t\trawset(self, key, value)\r\n\t\t\tend\r\n\t\t\tself:updateText()\r\n\t\tend\r\n\r\n\t\tlocal meta1 = setmetatable({}, meta)\r\n\t\tDrawings[meta1] = meta1\r\n\t\treturn meta1\r\n\telseif Type == 'Image' then\r\n\t\tlocal a = Instance.new(\"ImageLabel\", DrawingDict)\r\n\t\ta.Visible = false\r\n\t\ta.Size = UDim2.new(0, 0, 0, 0)\r\n\t\ta.ImageColor3 = Color3.fromRGB(255,255,255)\r\n\t\ta.BackgroundTransparency = 1\r\n\t\ta.BorderSizePixel = 0\r\n\r\n\t\tlocal meta = baseProps\r\n\t\tmeta.ClassName = 'Image'\r\n\t\tmeta.__index = {\r\n\t\t\tText = '',\r\n\t\t\tTransparency = 0,\r\n\t\t\tSize = Vector2.new(0, 0),\r\n\t\t\tPosition = Vector2.new(0,0),\r\n\t\t\tColor = Color3.fromRGB(255, 255, 255),\r\n\t\t\tImage = '',\r\n\t\t\tRemove = function()\r\n\t\t\t\tfor i, v in pairs(Drawings) do if v == meta then Drawings[i] = nil end end\r\n\t\t\t\ta:Destroy()\r\n\t\t\tend,\r\n\t\t\tDestroy = function()\r\n\t\t\t\tfor i, v in pairs(Drawings) do\r\n\t\t\t\t\tif v == meta then Drawings[i] = nil end\r\n\t\t\t\tend\r\n\t\t\t\ta:Destroy()\r\n\t\t\tend,\r\n\t\t\tupdateImage = function(self)\r\n\t\t\t\tif not a then return end\r\n\t\t\t\ta.Size = UDim2.new(0, self.Size.X, 0, self.Size.Y)\r\n\t\t\t\ta.Position = UDim2.new(0, self.Position.X, 0, self.Position.Y)\r\n\t\t\t\ta.Visible = self.Visible\r\n\t\t\t\ta.ImageColor3 = self.Color\r\n\t\t\t\ta.ImageTransparency = 1 - self.Transparency\r\n\t\t\t\ta.BorderSizePixel = self.Outline and 1 or 0\r\n\t\t\t\ta.Image = self.Image\r\n\t\t\tend\r\n\t\t}\r\n\r\n\t\tmeta.__newindex = function(self, key, value)\r\n\t\t\tif not self then return end\r\n\t\t\tif key == 'Visible' and typeof(value) == 'boolean' then\r\n\t\t\t\trawset(self, key, value)\r\n\t\t\telseif key == 'Color' and typeof(value) == 'Color3' then\r\n\t\t\t\trawset(self, key, value)\r\n\t\t\telseif key == 'Transparency' and typeof(value) == 'number' then\r\n\t\t\t\trawset(self, key, value)\r\n\t\t\telseif key == 'Position' and typeof(value) == 'Vector2' then\r\n\t\t\t\trawset(self, key, value)\r\n\t\t\telseif key == 'Size' and typeof(value) == 'number' then\r\n\t\t\t\trawset(self, key, value)\r\n\t\t\telseif key == 'Image' and typeof(value) == 'string' then\r\n\t\t\t\trawset(self, key, value)\r\n\t\t\telse\r\n\t\t\t\treturn\r\n\t\t\tend\r\n\t\t\tself:updateImage()\r\n\t\tend\r\n\r\n\t\tlocal meta1 = setmetatable({}, meta)\r\n\t\tDrawings[meta1] = meta1\r\n\t\treturn meta1\r\n\tend\r\nend\r\n\r\nfuncs.randomstring = funcs.crypt.random\r\nfuncs.getprotecteduis = function()\r\n\treturn protecteduis\r\nend\r\nfuncs.getprotectedguis = funcs.getprotecteduis\r\nfuncs.cleardrawcache = function()\r\n\tfor _, v in pairs(Drawings) do\r\n\t\tv:Remove()\r\n\tend\r\n\ttable.clear(Drawings)\r\nend\r\nfuncs.checkcaller = function()\r\n\tlocal info = debug.info(getgenv, 'slnaf')\r\n\treturn debug.info(1, 'slnaf')==info\r\nend\r\nfuncs.getthreadcontext = function() -- funny little way of getting this\r\n\tif coroutine.isyieldable(coroutine.running()) then -- check if u can use task.wait or not\r\n\t\tQueueGetIdentity()\r\n\t\ttask.wait(.1)\r\n\t\treturn tonumber(Identity)\r\n\telse\r\n\t\tif Identity == -1 then\r\n\t\t\ttask.spawn(QueueGetIdentity)\r\n\t\t\treturn 1\r\n\t\telse\r\n\t\t\treturn tonumber(Identity)\r\n\t\tend\r\n\tend\r\nend\r\nfuncs.getthreadidentity = funcs.getthreadcontext\r\nfuncs.getidentity = funcs.getthreadcontext\r\nfuncs.rconsolecreate = function()\r\n\tlocal Clone = Console:Clone()\r\n\tClone.Parent = gethui()\r\n\tConsoleClone = Clone\r\n\tConsoleClone.ConsoleFrame.Topbar.InputBegan:Connect(function(input)\r\n\t\tif input.UserInputType == Enum.UserInputType.MouseButton1 then\r\n\t\t\tstartDrag(input, ConsoleClone.ConsoleFrame)\r\n\t\tend\r\n\tend)\r\nend\r\nfuncs.rconsoledestroy = function()\r\n\tif ConsoleClone then ConsoleClone:Destroy() end\r\n\tConsoleClone = nil\r\nend\r\nfuncs.rconsoleprint = function(msg, cc)\r\n\tlocal CONSOLE = ConsoleClone or Console\r\n\trepeat task.wait() until ConsoleQueue:IsEmpty()\r\n\tmsg = tostring(msg)\r\n\tlocal last_color = nil\r\n\r\n\tmsg = msg:gsub('@@(%a+)@@', function(color)\r\n\t\tlocal colorName = color:upper()\r\n\t\tlocal rgbColor = colors[colorName]\r\n\t\tif rgbColor then\r\n\t\t\tlocal fontTag = string.format('<font color=\"rgb(%d,%d,%d)\">', rgbColor.R * 255, rgbColor.G * 255, rgbColor.B * 255)\r\n\t\t\tlocal result = last_color and '</font>' .. fontTag or fontTag\r\n\t\t\tlast_color = colorName\r\n\t\t\treturn result\r\n\t\telse\r\n\t\t\treturn '@@' .. color .. '@@'\r\n\t\tend\r\n\tend)\r\n\r\n\tif last_color then\r\n\t\tmsg = msg .. '</font>'\r\n\tend\r\n\r\n\tif msg:match('<font color=\".+\">.+</font>') then\r\n\t\tif msg:match('<font color=\".+\"></font>') == msg then MessageColor = colors[last_color] return end\r\n\tend\r\n\r\n\tlocal tmp = MessageTemplate:Clone()\r\n\ttmp.Parent = CONSOLE.ConsoleFrame.Holder\r\n\ttmp.Text = msg\r\n\ttmp.Visible = true\r\n\ttmp.TextColor3 = cc and cc or MessageColor\r\nend\r\nfuncs.rconsoleinput = function()\r\n\tlocal CONSOLE = ConsoleClone or Console\r\n\trepeat task.wait() until ConsoleQueue:IsEmpty()\r\n\tConsoleQueue:Queue('input')\r\n\tlocal box = InputTemplate:Clone()\r\n\tlocal val\r\n\tbox.Parent = CONSOLE.ConsoleFrame.Holder\r\n\tbox.Visible = true\r\n\tbox.TextEditable = true\r\n\tbox.TextColor3 = MessageColor\r\n\r\n\tbox.FocusLost:Connect(function(a)\r\n\t\tif not a then return end\r\n\t\tval = box.Text\r\n\t\tConsoleQueue:Update()\r\n\tend)\r\n\r\n\tlocal FOCUSED = false\r\n\twhile true do\r\n\t\tif box.Text:sub(#box.Text, #box.Text) == '_' or box.Text == '' or not box:IsFocused() then\r\n\t\t\tbox.TextColor3 = Color3.fromRGB(255, 255, 255)\r\n\t\t\tbox.Text = box.Text .. '_'\r\n\r\n\t\t\tfor _ = 1, 100 do\r\n\t\t\t\ttask.wait(1/2)\r\n\t\t\t\tif box:IsFocused() then\r\n\t\t\t\t\tFOCUSED = true\r\n\t\t\t\t\tbox.TextColor3 = MessageColor\r\n\t\t\t\t\tbreak\r\n\t\t\t\tend\r\n\t\t\t\tbox.Text = box.Text:sub(#box.Text, #box.Text) == '_' and box.Text:sub(#box.Text-1, #box.Text-1) or box.Text .. '_'\r\n\t\t\tend\r\n\t\t\tif FOCUSED then break end\r\n\t\telse\r\n\t\t\ttask.wait(0.1)\r\n\t\tend\r\n\tend\r\n\trepeat task.wait() until val\r\n\treturn val\r\nend\r\nfuncs.rconsolename = function(a)\r\n\tif ConsoleClone then\r\n\t\tConsoleClone.ConsoleFrame.Title.Text = a\r\n\telse\r\n\t\tConsole.ConsoleFrame.Title.Text = a\r\n\tend\r\nend\r\nfuncs.printconsole = function(msg, r, g, b)\r\n\tr = r or 0\r\n\tg = g or 0\r\n\tb = b or 0\r\n\trconsoleprint(msg, Color3.fromRGB(r, g, b))\r\nend\r\nfuncs.rconsoleclear = function()\r\n\tif ConsoleClone then\r\n\t\tfor i, v in pairs(ConsoleClone.ConsoleFrame.Holder:GetChildren()) do\r\n\t\t\tif v.ClassName == 'TextLabel' or v.ClassName == 'TextBox' then v:Destroy() end\r\n\t\tend\r\n\telse\r\n\t\tfor i, v in pairs(Console.ConsoleFrame.Holder:GetChildren()) do\r\n\t\t\tif v.ClassName == 'TextLabel' or v.ClassName == 'TextBox' then v:Destroy() end\r\n\t\tend\r\n\tend\r\nend\r\nfuncs.rconsoleinfo = function(a)\r\n\trconsoleprint('[INFO]: ' .. tostring(a))\r\nend\r\nfuncs.rconsolewarn = function(a)\r\n\trconsoleprint('[*]: ' .. tostring(a))\r\nend\r\nfuncs.rconsoleerr = function(a)\r\n\tlocal clr = MessageColor\r\n\tlocal oldColor\r\n\tfor i, v in pairs(colors) do\r\n\t\tif clr == v then oldColor = i break end\r\n\tend\r\n\trconsoleprint(string.format('[@@RED@@*@@%s@@]: %s', oldColor, tostring(a)))\r\nend\r\nfuncs.rconsoleinputasync = funcs.rconsoleinput\r\nfuncs.consolecreate = funcs.rconsolecreate\r\nfuncs.consoleclear = funcs.rconsoleclear\r\nfuncs.consoledestroy = funcs.rconsoledestroy\r\nfuncs.consoleinput = funcs.rconsoleinput\r\nfuncs.rconsolesettitle = funcs.rconsolename\r\nfuncs.consolesettitle = funcs.rconsolename\r\n\r\nfuncs.queue_on_teleport = function(scripttoexec) -- WARNING: MUST HAVE MOREUNC IN AUTO EXECUTE FOR THIS TO WORK.\r\n\tlocal newTPService = {\r\n\t\t__index = function(self, key)\r\n\t\t\tif key == 'Teleport' then\r\n\t\t\t\treturn function(gameId, player, teleportData, loadScreen)\r\n\t\t\t\t\tteleportData = {teleportData, MOREUNCSCRIPTQUEUE=scripttoexec}\r\n\t\t\t\t\treturn oldGame:GetService(\"TeleportService\"):Teleport(gameId, player, teleportData, loadScreen)\r\n\t\t\t\tend\r\n\t\t\tend\r\n\t\tend\r\n\t}\r\n\tlocal gameMeta = {\r\n\t\t__index = function(self, key)\r\n\t\t\tif key == 'GetService' then\r\n\t\t\t\treturn function(name)\r\n\t\t\t\t\tif name == 'TeleportService' then return newTPService end\r\n\t\t\t\tend\r\n\t\t\telseif key == 'TeleportService' then return newTPService end\r\n\t\t\treturn game[key]\r\n\t\tend,\r\n\t\t__metatable = 'The metatable is protected'\r\n\t}\r\n\tgetgenv().game = setmetatable({}, gameMeta)\r\nend\r\nfuncs.queueonteleport = funcs.queue_on_teleport\r\n\r\nlocal Count = 0\r\nlocal Total = 0\r\n\r\nlocal funcs2 = {}\r\nfor i, _ in pairs(funcs) do\r\n\ttable.insert(funcs2, i)\r\nend\r\ntable.sort(funcs2, function(a, b)\r\n\treturn string.byte(a:lower())<string.byte(b:lower())\r\nend)\r\n\r\nfor i, v in pairs(funcs2) do\r\n\tif not getgenv()[i] then\r\n\t\tTotal = Total + 1\r\n\tend\r\nend\r\n\r\nfor _, i in pairs(funcs2) do\r\n\tlocal v = funcs[i]\r\n\tlocal Result = SafeOverride(i, v)\r\n\tif Result == 2 then Count = Count + 1 end\r\n\tlocal str = Result == 1 and ('[⛔] %s already exists.'):format(i) or Result == 2 and (\"[✅] Added %s%s to the global environment. (%d/%d)\"):format(i, type(v)=='function' and '()' or '', Count, Total) or Result ~= 1 and Result ~= 2 and (\"[⛔] Unknown result for %s.\"):format(i)\r\n\t--print(str)\r\nend\r\n\r\ngetgenv().syn.protect_gui(DrawingDict)\r\ngetgenv().syn.protect_gui(ClipboardUI)\r\nprint('Executor Loaded')\r\ngetgenv().MoreUNC = true
+if getgenv and getgenv().MoreUNC then return end
+
+-- Definitions
+local table = table.clone(table) -- Prevent modifications from other scripts
+local debug = table.clone(debug) -- ^^^^
+local bit32 = table.clone(bit32)
+local bit = bit32
+local os = table.clone(os)
+local math = table.clone(math)
+local utf8 = table.clone(utf8)
+local string = table.clone(string)
+local task = table.clone(task)
+
+local game = game -- game is game
+local oldGame = game
+
+local ExecutorVersion = '1.0.5'
+
+local isDragging = false -- rconsole
+local dragStartPos = nil -- rconsole
+local frameStartPos = nil -- rconsole
+
+local Data = game:GetService("TeleportService"):GetLocalPlayerTeleportData()
+local TeleportData
+if Data and Data.MOREUNCSCRIPTQUEUE then
+	TeleportData = Data.MOREUNCSCRIPTQUEUE
+end
+if TeleportData then
+	local func = loadstring(TeleportData)
+	local s, e = pcall(func)
+	if not s then task.spawn(error, e) end
+end
+
+
+print = print
+warn = warn
+error = error
+pcall = pcall
+printidentity = printidentity
+ipairs = ipairs
+pairs = pairs
+tostring = tostring
+tonumber = tonumber
+setmetatable = setmetatable
+rawget = rawget
+rawset = rawset
+getmetatable = getmetatable
+type = type
+ExecutorVersion = ExecutorVersion
+
+-- Services / Instances
+local HttpService = game:GetService('HttpService');
+local Log = game:GetService('LogService');
+
+local vim = Instance.new("VirtualInputManager");
+
+local DrawingDict = Instance.new("ScreenGui") -- For drawing.new
+
+local ClipboardUI = Instance.new("ScreenGui") -- For setclipboard
+
+local hui = Instance.new("Folder") -- For gethui
+hui.Name = '\0'
+
+local ClipboardBox = Instance.new('TextBox', ClipboardUI) -- For setclipboard
+ClipboardBox.Position = UDim2.new(100, 0, 100, 0) -- VERY off screen
+
+-- All the following are for rconsole
+local Console = Instance.new("ScreenGui")
+local ConsoleFrame = Instance.new("Frame")
+local Topbar = Instance.new("Frame")
+local _CORNER = Instance.new("UICorner")
+local ConsoleCorner = Instance.new("UICorner")
+local CornerHide = Instance.new("Frame")
+local DontModify = Instance.new("Frame")
+local UICorner = Instance.new("UICorner")
+local CornerHide2 = Instance.new("Frame")
+local Title = Instance.new("TextLabel")
+local UIPadding = Instance.new("UIPadding")
+local ConsoleIcon = Instance.new("ImageLabel")
+local Holder = Instance.new("ScrollingFrame")
+local MessageTemplate = Instance.new("TextLabel")
+local InputTemplate = Instance.new("TextBox")
+local UIListLayout = Instance.new("UIListLayout")
+local HolderPadding = Instance.new("UIPadding")
+
+Console.Name = "Console"
+Console.Parent = nil
+Console.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+
+ConsoleFrame.Name = "ConsoleFrame"
+ConsoleFrame.Parent = Console
+ConsoleFrame.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+ConsoleFrame.BorderColor3 = Color3.fromRGB(0, 0, 0)
+ConsoleFrame.BorderSizePixel = 0
+ConsoleFrame.Position = UDim2.new(0.0963890627, 0, 0.220791712, 0)
+ConsoleFrame.Size = UDim2.new(0, 888, 0, 577)
+
+Topbar.Name = "Topbar"
+Topbar.Parent = ConsoleFrame
+Topbar.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
+Topbar.BorderColor3 = Color3.fromRGB(0, 0, 0)
+Topbar.BorderSizePixel = 0
+Topbar.Position = UDim2.new(0, 0, -0.000463640812, 0)
+Topbar.Size = UDim2.new(1, 0, 0, 32)
+
+_CORNER.Name = "_CORNER"
+_CORNER.Parent = Topbar
+
+ConsoleCorner.Name = "ConsoleCorner"
+ConsoleCorner.Parent = ConsoleFrame
+
+CornerHide.Name = "CornerHide"
+CornerHide.Parent = ConsoleFrame
+CornerHide.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
+CornerHide.BorderColor3 = Color3.fromRGB(0, 0, 0)
+CornerHide.BorderSizePixel = 0
+CornerHide.Position = UDim2.new(0, 0, 0.0280000009, 0)
+CornerHide.Size = UDim2.new(1, 0, 0, 12)
+
+DontModify.Name = "DontModify"
+DontModify.Parent = ConsoleFrame
+DontModify.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
+DontModify.BorderColor3 = Color3.fromRGB(0, 0, 0)
+DontModify.BorderSizePixel = 0
+DontModify.Position = UDim2.new(0.98169291, 0, 0.0278581586, 0)
+DontModify.Size = UDim2.new(-0.00675675692, 21, 0.972141862, 0)
+
+UICorner.Parent = DontModify
+
+CornerHide2.Name = "CornerHide2"
+CornerHide2.Parent = ConsoleFrame
+CornerHide2.AnchorPoint = Vector2.new(1, 0)
+CornerHide2.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
+CornerHide2.BorderColor3 = Color3.fromRGB(0, 0, 0)
+CornerHide2.BorderSizePixel = 0
+CornerHide2.Position = UDim2.new(1, 0, 0.0450000018, 0)
+CornerHide2.Size = UDim2.new(0, 9, 0.955023408, 0)
+
+Title.Name = "Title"
+Title.Parent = ConsoleFrame
+Title.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+Title.BackgroundTransparency = 1.000
+Title.BorderColor3 = Color3.fromRGB(0, 0, 0)
+Title.BorderSizePixel = 0
+Title.Position = UDim2.new(0.0440017432, 0, 0, 0)
+Title.Size = UDim2.new(0, 164, 0, 30)
+Title.Font = Enum.Font.GothamMedium
+Title.Text = "rconsole title"
+Title.TextColor3 = Color3.fromRGB(255, 255, 255)
+Title.TextSize = 17.000
+Title.TextXAlignment = Enum.TextXAlignment.Left
+
+UIPadding.Parent = Title
+UIPadding.PaddingTop = UDim.new(0, 5)
+
+ConsoleIcon.Name = "ConsoleIcon"
+ConsoleIcon.Parent = ConsoleFrame
+ConsoleIcon.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+ConsoleIcon.BackgroundTransparency = 1.000
+ConsoleIcon.BorderColor3 = Color3.fromRGB(0, 0, 0)
+ConsoleIcon.BorderSizePixel = 0
+ConsoleIcon.Position = UDim2.new(0.00979213417, 0, 0.000874322082, 0)
+ConsoleIcon.Size = UDim2.new(0, 31, 0, 31)
+ConsoleIcon.Image = "http://www.roblox.com/asset/?id=11843683545"
+
+Holder.Name = "Holder"
+Holder.Parent = ConsoleFrame
+Holder.Active = true
+Holder.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
+Holder.BackgroundTransparency = 1.000
+Holder.BorderColor3 = Color3.fromRGB(0, 0, 0)
+Holder.BorderSizePixel = 0
+Holder.Position = UDim2.new(0, 0, 0.054600548, 0)
+Holder.Size = UDim2.new(1, 0, 0.945399463, 0)
+Holder.ScrollBarThickness = 8
+Holder.CanvasSize = UDim2.new(0,0,0,0)
+Holder.AutomaticCanvasSize = Enum.AutomaticSize.XY
+
+MessageTemplate.Name = "MessageTemplate"
+MessageTemplate.Parent = Holder
+MessageTemplate.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+MessageTemplate.BackgroundTransparency = 1.000
+MessageTemplate.BorderColor3 = Color3.fromRGB(0, 0, 0)
+MessageTemplate.BorderSizePixel = 0
+MessageTemplate.Size = UDim2.new(0.9745, 0, 0.030000001, 0)
+MessageTemplate.Visible = false
+MessageTemplate.Font = Enum.Font.RobotoMono
+MessageTemplate.Text = "TEMPLATE"
+MessageTemplate.TextColor3 = Color3.fromRGB(255, 255, 255)
+MessageTemplate.TextSize = 20.000
+MessageTemplate.TextXAlignment = Enum.TextXAlignment.Left
+MessageTemplate.TextYAlignment = Enum.TextYAlignment.Top
+MessageTemplate.RichText = true
+
+UIListLayout.Parent = Holder
+UIListLayout.SortOrder = Enum.SortOrder.LayoutOrder
+UIListLayout.Padding = UDim.new(0, 4)
+
+HolderPadding.Name = "HolderPadding"
+HolderPadding.Parent = Holder
+HolderPadding.PaddingLeft = UDim.new(0, 15)
+HolderPadding.PaddingTop = UDim.new(0, 15)
+
+InputTemplate.Name = "InputTemplate"
+InputTemplate.Parent = nil
+InputTemplate.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+InputTemplate.BackgroundTransparency = 1.000
+InputTemplate.BorderColor3 = Color3.fromRGB(0, 0, 0)
+InputTemplate.BorderSizePixel = 0
+InputTemplate.Size = UDim2.new(0.9745, 0, 0.030000001, 0)
+InputTemplate.Visible = false
+InputTemplate.RichText = true
+InputTemplate.Font = Enum.Font.RobotoMono
+InputTemplate.Text = ""
+InputTemplate.PlaceholderText = ''
+InputTemplate.TextColor3 = Color3.fromRGB(255, 255, 255)
+InputTemplate.TextSize = 20.000
+InputTemplate.TextXAlignment = Enum.TextXAlignment.Left
+InputTemplate.TextYAlignment = Enum.TextYAlignment.Top
+
+-- Variables
+local Identity = -1
+local active = true
+-- Others
+local oldLoader = loadstring
+-- Empty Tables
+local clonerefs = {}
+local protecteduis = {}
+local gc = {}
+local Instances = {} -- for nil instances
+local funcs = {} -- main table
+local names = {} -- protected gui names
+local Cache = {} -- for cached instances
+local Drawings = {} -- for cleardrawcache
+-- Non empty tables
+local colors = {
+	BLACK = Color3.fromRGB(50, 50, 50),
+	BLUE = Color3.fromRGB(0, 0, 204),
+	GREEN = Color3.fromRGB(0, 255, 0),
+	CYAN = Color3.fromRGB(0, 255, 255),
+	RED = Color3.fromHex('#5A0101'),
+	MAGENTA = Color3.fromRGB(255, 0, 255),
+	BROWN = Color3.fromRGB(165, 42, 42),
+	LIGHT_GRAY = Color3.fromRGB(211, 211, 211),
+	DARK_GRAY = Color3.fromRGB(169, 169, 169),
+	LIGHT_BLUE = Color3.fromRGB(173, 216, 230),
+	LIGHT_GREEN = Color3.fromRGB(144, 238, 144),
+	LIGHT_CYAN = Color3.fromRGB(224, 255, 255),
+	LIGHT_RED = Color3.fromRGB(255, 204, 203),
+	LIGHT_MAGENTA = Color3.fromRGB(255, 182, 193),
+	YELLOW = Color3.fromRGB(255, 255, 0),
+	WHITE = Color3.fromRGB(255, 255, 255),
+	ORANGE = Color3.fromRGB(255, 186, 12)
+}
+local patterns = {
+	{ pattern = '(%w+)%s*%+=%s*(%w+)', format = "%s = %s + %s" },
+	{ pattern = '(%w+)%s*%-=%s*(%w+)', format = "%s = %s - %s" },
+	{ pattern = '(%w+)%s*%*=%s*(%w+)', format = "%s = %s * %s" },
+	{ pattern = '(%w+)%s*/=%s*(%w+)', format = "%s = %s / %s" }
+}
+local patterns2 = {
+	{ pattern = 'for%s+(%w+)%s*,%s*(%w+)%s*in%s*(%w+)%s*do', format = "for %s, %s in pairs(%s) do" }
+}
+local renv = {
+	print, warn, error, assert, collectgarbage, load, require, select, tonumber, tostring, type, xpcall, pairs, next, ipairs,
+	newproxy, rawequal, rawget, rawset, rawlen, setmetatable, PluginManager,
+	coroutine.create, coroutine.resume, coroutine.running, coroutine.status, coroutine.wrap, coroutine.yield,
+	bit32.arshift, bit32.band, bit32.bnot, bit32.bor, bit32.btest, bit32.extract, bit32.lshift, bit32.replace, bit32.rshift, bit32.xor,
+	math.abs, math.acos, math.asin, math.atan, math.atan2, math.ceil, math.cos, math.cosh, math.deg, math.exp, math.floor, math.fmod, math.frexp, math.ldexp, math.log, math.log10, math.max, math.min, math.modf, math.pow, math.rad, math.random, math.randomseed, math.sin, math.sinh, math.sqrt, math.tan, math.tanh,
+	string.byte, string.char, string.find, string.format, string.gmatch, string.gsub, string.len, string.lower, string.match, string.pack, string.packsize, string.rep, string.reverse, string.sub, string.unpack, string.upper,
+	table.concat, table.insert, table.pack, table.remove, table.sort, table.unpack,
+	utf8.char, utf8.charpattern, utf8.codepoint, utf8.codes, utf8.len, utf8.nfdnormalize, utf8.nfcnormalize,
+	os.clock, os.date, os.difftime, os.time,
+	delay, elapsedTime, require, spawn, tick, time, typeof, UserSettings, ExecutorVersion, wait,
+	task.defer, task.delay, task.spawn, task.wait,
+	debug.traceback, debug.profilebegin, debug.profileend
+}
+local keys={[0x08]=Enum.KeyCode.Backspace,[0x09]=Enum.KeyCode.Tab,[0x0C]=Enum.KeyCode.Clear,[0x0D]=Enum.KeyCode.Return,[0x10]=Enum.KeyCode.LeftShift,[0x11]=Enum.KeyCode.LeftControl,[0x12]=Enum.KeyCode.LeftAlt,[0x13]=Enum.KeyCode.Pause,[0x14]=Enum.KeyCode.CapsLock,[0x1B]=Enum.KeyCode.Escape,[0x20]=Enum.KeyCode.Space,[0x21]=Enum.KeyCode.PageUp,[0x22]=Enum.KeyCode.PageDown,[0x23]=Enum.KeyCode.End,[0x24]=Enum.KeyCode.Home,[0x2D]=Enum.KeyCode.Insert,[0x2E]=Enum.KeyCode.Delete,[0x30]=Enum.KeyCode.Zero,[0x31]=Enum.KeyCode.One,[0x32]=Enum.KeyCode.Two,[0x33]=Enum.KeyCode.Three,[0x34]=Enum.KeyCode.Four,[0x35]=Enum.KeyCode.Five,[0x36]=Enum.KeyCode.Six,[0x37]=Enum.KeyCode.Seven,[0x38]=Enum.KeyCode.Eight,[0x39]=Enum.KeyCode.Nine,[0x41]=Enum.KeyCode.A,[0x42]=Enum.KeyCode.B,[0x43]=Enum.KeyCode.C,[0x44]=Enum.KeyCode.D,[0x45]=Enum.KeyCode.E,[0x46]=Enum.KeyCode.F,[0x47]=Enum.KeyCode.G,[0x48]=Enum.KeyCode.H,[0x49]=Enum.KeyCode.I,[0x4A]=Enum.KeyCode.J,[0x4B]=Enum.KeyCode.K,[0x4C]=Enum.KeyCode.L,[0x4D]=Enum.KeyCode.M,[0x4E]=Enum.KeyCode.N,[0x4F]=Enum.KeyCode.O,[0x50]=Enum.KeyCode.P,[0x51]=Enum.KeyCode.Q,[0x52]=Enum.KeyCode.R,[0x53]=Enum.KeyCode.S,[0x54]=Enum.KeyCode.T,[0x55]=Enum.KeyCode.U,[0x56]=Enum.KeyCode.V,[0x57]=Enum.KeyCode.W,[0x58]=Enum.KeyCode.X,[0x59]=Enum.KeyCode.Y,[0x5A]=Enum.KeyCode.Z,[0x5D]=Enum.KeyCode.Menu,[0x60]=Enum.KeyCode.KeypadZero,[0x61]=Enum.KeyCode.KeypadOne,[0x62]=Enum.KeyCode.KeypadTwo,[0x63]=Enum.KeyCode.KeypadThree,[0x64]=Enum.KeyCode.KeypadFour,[0x65]=Enum.KeyCode.KeypadFive,[0x66]=Enum.KeyCode.KeypadSix,[0x67]=Enum.KeyCode.KeypadSeven,[0x68]=Enum.KeyCode.KeypadEight,[0x69]=Enum.KeyCode.KeypadNine,[0x6A]=Enum.KeyCode.KeypadMultiply,[0x6B]=Enum.KeyCode.KeypadPlus,[0x6D]=Enum.KeyCode.KeypadMinus,[0x6E]=Enum.KeyCode.KeypadPeriod,[0x6F]=Enum.KeyCode.KeypadDivide,[0x70]=Enum.KeyCode.F1,[0x71]=Enum.KeyCode.F2,[0x72]=Enum.KeyCode.F3,[0x73]=Enum.KeyCode.F4,[0x74]=Enum.KeyCode.F5,[0x75]=Enum.KeyCode.F6,[0x76]=Enum.KeyCode.F7,[0x77]=Enum.KeyCode.F8,[0x78]=Enum.KeyCode.F9,[0x79]=Enum.KeyCode.F10,[0x7A]=Enum.KeyCode.F11,[0x7B]=Enum.KeyCode.F12,[0x90]=Enum.KeyCode.NumLock,[0x91]=Enum.KeyCode.ScrollLock,[0xBA]=Enum.KeyCode.Semicolon,[0xBB]=Enum.KeyCode.Equals,[0xBC]=Enum.KeyCode.Comma,[0xBD]=Enum.KeyCode.Minus,[0xBE]=Enum.KeyCode.Period,[0xBF]=Enum.KeyCode.Slash,[0xC0]=Enum.KeyCode.Backquote,[0xDB]=Enum.KeyCode.LeftBracket,[0xDD]=Enum.KeyCode.RightBracket,[0xDE]=Enum.KeyCode.Quote} -- for keypress
+local Fonts = { -- Drawing.Fonts
+	[0] = Enum.Font.Arial,
+	[1] = Enum.Font.BuilderSans,
+	[2] = Enum.Font.Gotham,
+	[3] = Enum.Font.RobotoMono
+}
+-- rconsole
+local MessageColor = colors['WHITE']
+local ConsoleClone = nil
+-- functions
+local function Descendants(tbl)
+	local descendants = {}
+
+	local function process_table(subtbl, prefix)
+		for k, v in pairs(subtbl) do
+			local index = prefix and (prefix .. "." .. tostring(k)) or tostring(k)
+			descendants[index] = v
+			if type(v) == 'table' then
+				process_table(v, index)
+			else
+				descendants[index] = v
+			end
+		end
+	end
+
+	if type(tbl) ~= 'table' then
+		descendants[tostring(1)] = tbl
+	else
+		process_table(tbl, nil)
+	end
+
+	return descendants
+end
+
+local function rawlength(tbl)
+	local a = 0
+	for i, v in pairs(tbl) do
+		a = a + 1
+	end
+	return a
+end
+
+local function ToPairsLoop(code)
+	for _, p in ipairs(patterns2) do
+		code = code:gsub(p.pattern, function(var1, var2, tbl)
+			return p.format:format(var1, var2, tbl)
+		end)
+	end
+	return code
+end
+
+local function SafeOverride(a, b, c) --[[ Index, Data, Should override ]]
+	if getgenv()[a] and not c then return 1 end
+	getgenv()[a] = b
+
+	return 2
+end
+
+local function toluau(code)
+	for _, p in ipairs(patterns) do
+		code = code:gsub(p.pattern, function(var, value)
+			return p.format:format(var, var, value)
+		end)
+	end
+	code = ToPairsLoop(code)
+	return code
+end
+
+local function handleInput(input, Object)
+	if isDragging then
+		local delta = input.Position - dragStartPos
+		Object.Position = UDim2.new(
+			frameStartPos.X.Scale, 
+			frameStartPos.X.Offset + delta.X, 
+			frameStartPos.Y.Scale, 
+			frameStartPos.Y.Offset + delta.Y
+		)
+	end
+end
+
+local function startDrag(input, Object)
+	isDragging = true
+	dragStartPos = input.Position
+	frameStartPos = Object.Position
+	input.UserInputState = Enum.UserInputState.Begin
+end
+
+local function stopDrag(input)
+	isDragging = false
+	input.UserInputState = Enum.UserInputState.End
+end
+
+-- Main Functions
+function QueueGetIdentity()
+	printidentity()
+	task.wait(.1)
+	local messages = Log:GetLogHistory()
+	local message;
+	if not messages[#messages].message:match("Current identity is") then
+		for i = #messages, 1, -1 do
+			if messages[i].message:match("Current identity is %d") then
+				message = messages[i].message
+				break
+			end
+		end
+	else
+		message = messages[#messages].message:match('Current identity is %d'):gsub("Current identity is ", '')
+	end
+	Identity = tonumber(message)
+end
+local Queue = {}
+Queue.__index = Queue
+function Queue.new()
+	local self = setmetatable({}, Queue)
+	self.elements = {}
+	return self
+end
+
+function Queue:Queue(element)
+	table.insert(self.elements, element)
+end
+
+function Queue:Update()
+	if #self.elements == 0 then
+		return nil
+	end
+	return table.remove(self.elements, 1)
+end
+
+function Queue:IsEmpty()
+	return #self.elements == 0
+end
+function Queue:Current()
+	return self.elements
+end
+
+-- Events
+game.DescendantRemoving:Connect(function(des)
+	table.insert(Instances, des)
+	Cache[des] = 'REMOVE'
+end)
+game.DescendantAdded:Connect(function(des)
+	Cache[des] = true
+end)
+game:GetService("UserInputService").WindowFocused:Connect(function()
+	active = true
+end)
+
+game:GetService("UserInputService").WindowFocusReleased:Connect(function()
+	active = false
+end)
+
+game:GetService("UserInputService").InputChanged:Connect(function(input)
+	if not input then return end
+	if isDragging and input.UserInputType == Enum.UserInputType.MouseMovement and ConsoleClone then
+		handleInput(input, ConsoleClone.ConsoleFrame)
+	end
+end)
+
+game:GetService("UserInputService").InputEnded:Connect(function(input)
+	if not input then return end
+	if input.UserInputType == Enum.UserInputType.MouseButton1 then
+		stopDrag(input)
+	end
+end)
+-- Libraries
+funcs.base64 = {}
+funcs.crypt = {hex={},url={}}
+funcs.syn = {}
+funcs.syn_backup = {}
+funcs.http = {}
+funcs.Drawing = {}
+funcs.cache = {}
+funcs.string = string
+funcs.debug = debug
+funcs.debug.getinfo = function(t)
+	local CurrentLine = tonumber(debug.info(t, 'l'))
+	local Source = debug.info(t, 's')
+	local name = debug.info(t, 'n')
+	local numparams, isvrg = debug.info(t, 'a')
+	if #name == 0 then name = nil end
+	local a, b = debug.info(t, 'a')
+	return {
+		['currentline'] = CurrentLine,
+		['source'] = Source,
+		['name'] = tostring(name),
+		['numparams'] = tonumber(numparams),
+		['is_vararg'] = isvrg and 1 or 0,
+		['short_src'] = tostring(Source:sub(1, 60)),
+		['what'] = Source == '[C]' and 'C' or 'Lua',
+		['func'] = t,
+		['nups'] = 0 -- i CANNOT make an upvalue thingy
+	}
+end
+
+funcs.Drawing.Fonts = {
+	['UI'] = 0,
+	['System'] = 1,
+	['Plex'] = 2,
+	['Monospace'] = 3
+}
+
+
+local ClipboardQueue = Queue.new()
+local ConsoleQueue = Queue.new()
+local getgenv = getgenv or function() return getfenv(1) end
+getgenv().getgenv = getgenv
+
+-- [[ Functions ]]
+
+--[[funcs.cloneref = function(a)
+    if not clonerefs[a] then clonerefs[a] = {} end
+    local Clone = {}
+
+    local mt = {__type='Instance'} -- idk if this works ;(
+
+    mt.__tostring = function()
+        return a.Name
+    end
+
+    mt.__index = function(_, key)
+        local thing = funcs.debug.getmetatable(a)[key]
+        if type(thing) == 'function' then
+            return function(...)
+                return thing(a, ...)
+            end
+        else
+            return thing
+        end
+    end
+    mt.__newindex = function(_, key, value)
+     a[key] = value
+    end
+    mt.__metatable = getmetatable(a)
+    mt.__len = function(_)
+     return error('attempt to get length of a userdata value')
+    end
+
+    setmetatable(Clone, mt)
+
+    table.insert(clonerefs[a], Clone)
+
+    return Clone
+end
+TEMPORARY REMOVED UNTIL WE FIND A FIX
+]]
+-- // The rest is made by me.
+
+funcs.compareinstances = function(a, b)
+	if not clonerefs[a] then
+		return a == b
+	else
+		if table.find(clonerefs[a], b) then return true end
+	end
+	return false
+end
+
+funcs.clonefunction = function(a)
+	assert(type(a)=='function', 'Invalid parameter 1 to \'clonefunction\', function expected got ' .. typeof(a))
+
+	return function(...)
+		local Copy = Sandbox(a, {}, {}, {}, 0, {...})
+		return Copy.return_value
+	end
+end
+
+funcs.cache.iscached = function(thing)
+	return Cache[thing] ~= 'REMOVE' and thing:IsDescendantOf(game) or false -- If it's cache isnt 'REMOVE' and its a des of game (Usually always true) or if its cache is 'REMOVE' then its false.
+end
+funcs.cache.invalidate = function(thing)
+	Cache[thing] = 'REMOVE'
+	thing.Parent = nil
+end
+funcs.cache.replace = function(a, b)
+	if Cache[a] then
+		Cache[a] = b
+	end
+	local n, p = a.Name, a.Parent -- name, parent
+	b.Parent = p
+	b.Name = n
+	a.Parent = nil
+end
+funcs.deepclone = function(a)
+	local Result = {}
+	for i, v in pairs(a) do
+		if type(v) == 'table' then
+			Result[i] = funcs.deepclone(v)
+		end
+		Result[i] = v
+	end
+	return Result
+end
+--[[ The base64 functions were made by https://scriptblox.com/u/yofriendfromschool1 , Credits to him.]]
+funcs.base64.encode = function(data)
+	local letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/'
+	return ((data:gsub('.', function(x) 
+		local r,b='',x:byte()
+		for i=8,1,-1 do r=r..(b%2^i-b%2^(i-1)>0 and '1' or '0') end
+		return r;
+	end)..'0000'):gsub('%d%d%d?%d?%d?%d?', function(x)
+		if (#x < 6) then return '' end
+		local c=0
+		for i=1,6 do c=c+(x:sub(i,i)=='1' and 2^(6-i) or 0) end
+		return letters:sub(c+1,c+1)
+	end)..({ '', '==', '=' })[#data%3+1])
+end
+funcs.base64.decode = function(data)
+	local b = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/'
+	data = string.gsub(data, '[^'..b..'=]', '')
+	return (data:gsub('.', function(x)
+		if x == '=' then return '' end
+		local r, f = '', (b:find(x) - 1)
+		for i = 6, 1, -1 do
+			r = r .. (f % 2^i - f % 2^(i - 1) > 0 and '1' or '0')
+		end
+		return r;
+	end):gsub('%d%d%d?%d?%d?%d?%d?%d?', function(x)
+		if #x ~= 8 then return '' end
+		local c = 0
+		for i = 1, 8 do
+			c = c + (x:sub(i, i) == '1' and 2^(8 - i) or 0)
+		end
+		return string.char(c)
+	end))
+end
+
+funcs.loadstring = function(code)
+	local s1, val1 = pcall(function()
+		return loadstring('local v1=15;v1+=1;return v1')()
+	end)
+	local s2, val2 = pcall(function()
+		return loadstring('local v1={"a"};for i, v in v1 do return v end')()
+	end)
+	if val1 ~= 16 and val2 ~= 'a' then
+		return oldLoader(toluau(code))
+	else
+		return oldLoader(code)
+	end
+end
+funcs.getgenv = getgenv
+funcs.crypt.base64 = funcs.base64
+funcs.crypt.base64encode = funcs.base64.encode
+funcs.crypt.base64decode = funcs.base64.decode
+funcs.crypt.base64_encode = funcs.base64.encode
+funcs.crypt.base64_decode = funcs.base64.decode
+funcs.base64_encode = funcs.base64.encode
+funcs.base64_decode = funcs.base64.decode
+
+funcs.crypt.hex.encode = function(txt)
+	txt = tostring(txt)
+	local hex = ''
+	for i = 1, #txt do
+		hex = hex .. string.format("%02x", string.byte(txt, i))
+	end
+	return hex
+end
+funcs.crypt.hex.decode = function(hex)
+	hex = tostring(hex)
+	local text = ""
+	for i = 1, #hex, 2 do
+		local byte_str = string.sub(hex, i, i+1)
+		local byte = tonumber(byte_str, 16)
+		text = text .. string.char(byte)
+	end
+	return text
+end
+funcs.crypt.url.encode = function(a)
+	return game:GetService("HttpService"):UrlEncode(a)
+end
+funcs.crypt.url.decode = function(a)
+	a = tostring(a)
+	a = string.gsub(a, "+", " ")
+	a = string.gsub(a, "%%(%x%x)", function(hex)
+		return string.char(tonumber(hex, 16))
+	end)
+	a = string.gsub(a, "\r\n", "\n")
+	return a
+end
+funcs.crypt.generatekey = function(optionalSize)
+	local key = ''
+	local a = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/'
+	for i = 1, optionalSize or 32 do local n = math.random(1, #a) key = key .. a:sub(n, n) end
+	return funcs.base64.encode(key)
+end
+funcs.crypt.generatebytes = function(size)
+	if type(size) ~= 'number' then return error('missing arguement #1 to \'generatebytes\' (number expected)') end
+	return funcs.crypt.generatekey(size)
+end
+funcs.crypt.encrypt = function(a, b)
+	local result = {}
+	a = tostring(a) b = tostring(b)
+	for i = 1, #a do
+		local byte = string.byte(a, i)
+		local keyByte = string.byte(b, (i - 1) % #b + 1)
+		table.insert(result, string.char(bit32.bxor(byte, keyByte)))
+	end
+	return table.concat(result)
+end
+funcs.crypt.decrypt = funcs.crypt.encrypt
+funcs.crypt.random = function(len)
+	return funcs.crypt.generatekey(len)
+end
+
+funcs.isrbxactive = function()
+	return active
+end
+funcs.isgameactive = funcs.isrbxactive
+funcs.gethui = function()
+	local s, H = pcall(function()
+		return game:GetService("CoreGui").RobloxGui
+	end)
+	if H then
+		if not hui.Parent then
+			hui.Parent = H.Parent
+		end
+		return hui
+	else
+		if not hui.Parent then
+			hui.Parent = game:GetService("Players").LocalPlayer.PlayerGui
+		end
+	end
+	return hui
+end
+if getgenv().getrenv and #getgenv().getrenv() == 0 or not getgenv().getrenv then
+	getgenv().getrenv = nil
+	getgenv().getrenv = function() -- Override incognito's getrenv
+		return renv -- couldn't think of a better way to implement it
+	end
+end
+funcs.setclipboard = function(data)
+	repeat task.wait() until ClipboardQueue:Current()[1] == data or ClipboardQueue:IsEmpty()
+	ClipboardQueue:Queue(data)
+	local old = game:GetService("UserInputService"):GetFocusedTextBox()
+	local copy = ClipboardQueue:Current()[1]
+	ClipboardBox:CaptureFocus()
+	ClipboardBox.Text = copy
+
+	local KeyCode = Enum.KeyCode
+	local Keys = {KeyCode.RightControl, KeyCode.A}
+	local Keys2 = {KeyCode.RightControl, KeyCode.C, KeyCode.V}
+
+	for _, v in ipairs(Keys) do
+		vim:SendKeyEvent(true, v, false, game)
+		task.wait()
+	end
+	for _, v in ipairs(Keys) do
+		vim:SendKeyEvent(false, v, false, game)
+		task.wait()
+	end
+	for _, v in ipairs(Keys2) do
+		vim:SendKeyEvent(true, v, false, game)
+		task.wait()
+	end
+	for _, v in ipairs(Keys2) do
+		vim:SendKeyEvent(false, v, false, game)
+		task.wait()
+	end
+	ClipboardBox.Text = ''
+	if old then old:CaptureFocus() end
+	task.wait(.18)
+	ClipboardQueue:Update()
+end
+funcs.syn.write_clipboard = funcs.setclipboard
+funcs.toclipboard = funcs.setclipboard
+funcs.writeclipboard = funcs.setclipboard
+funcs.setrbxclipboard = funcs.setclipboard
+
+funcs.isrenderobj = function(thing)
+	return Drawings[thing] ~= nil
+end
+funcs.getrenderproperty = function(thing, prop)
+	return thing[prop]
+end
+funcs.setrenderproperty = function(thing, prop, val)
+	local success, err = pcall(function()
+		thing[prop] = val
+	end)
+	if not success and err then warn(err) end
+end
+
+funcs.syn.protect_gui = function(gui)
+	names[gui] = {name=gui.Name,parent=gui.Parent}
+	protecteduis[gui] = gui
+	gui.Name = funcs.crypt.random(64) -- 64 byte string, removed hashing cuz its useless lmao
+	gui.Parent = gethui()
+end
+funcs.syn.unprotect_gui = function(gui)
+	if names[gui] then gui.Name = names[gui].name gui.Parent = names[gui].parent end protecteduis[gui] = nil
+end
+funcs.syn.protectgui = funcs.syn.protect_gui
+funcs.syn.unprotectgui = funcs.syn.unprotect_gui
+funcs.syn.secure_call = function(func) -- Does not do a secure call, just pcalls it.
+	return pcall(func)
+end
+
+
+funcs.isreadonly = function(tbl)
+	if type(tbl) ~= 'table' then return false end
+	return table.isfrozen(tbl)
+end
+funcs.setreadonly = function(tbl, cond)
+	if cond then
+		table.freeze(tbl)
+	else
+		return funcs.deepclone(tbl)
+	end
+end
+funcs.httpget = function(url)
+	return game:HttpGet(url)
+end
+funcs.httppost = function(url, body, contenttype)
+	return game:HttpPostAsync(url, body, contenttype)
+end
+funcs.request = function(args)
+	local Body = nil
+	local Timeout = 0
+	local function callback(success, body)
+		Body = body
+		Body['Success'] = success
+	end
+	HttpService:RequestInternal(args):Start(callback)
+	while not Body and Timeout < 10 do
+		task.wait(.1)
+		Timeout = Timeout + .1
+	end
+	return Body
+end
+funcs.mouse1click = function(x, y)
+	x = x or 0
+	y = y or 0
+	vim:SendMouseButtonEvent(x, y, 0, true, game, false)
+	task.wait()
+	vim:SendMouseButtonEvent(x, y, 0, false, game, false)
+end
+funcs.mouse2click = function(x, y)
+	x = x or 0
+	y = y or 0
+	vim:SendMouseButtonEvent(x, y, 1, true, game, false)
+	task.wait()
+	vim:SendMouseButtonEvent(x, y, 1, false, game, false)
+end
+funcs.mouse1press = function(x, y)
+	x = x or 0
+	y = y or 0
+	vim:SendMouseButtonEvent(x, y, 0, true, game, false)
+end
+funcs.mouse1release = function(x, y)
+	x = x or 0
+	y = y or 0
+	vim:SendMouseButtonEvent(x, y, 0, false, game, false)
+end
+funcs.mouse2press = function(x, y)
+	x = x or 0
+	y = y or 0
+	vim:SendMouseButtonEvent(x, y, 1, true, game, false)
+end
+funcs.mouse2release = function(x, y)
+	x = x or 0
+	y = y or 0
+	vim:SendMouseButtonEvent(x, y, 1, false, game, false)
+end
+funcs.mousescroll = function(x, y, a)
+	x = x or 0
+	y = y or 0
+	a = a and true or false
+	vim:SendMouseWheelEvent(x, y, a, game)
+end
+funcs.keyclick = function(key)
+	if typeof(key) == 'number' then
+		if not keys[key] then return error("Key "..tostring(key) .. ' not found!') end
+		vim:SendKeyEvent(true, keys[key], false, game)
+		task.wait()
+		vim:SendKeyEvent(false, keys[key], false, game)
+	elseif typeof(Key) == 'EnumItem' then
+		vim:SendKeyEvent(true, key, false, game)
+		task.wait()
+		vim:SendKeyEvent(false, key, false, game)
+	end
+end
+funcs.keypress = function(key)
+	if typeof(key) == 'number' then
+		if not keys[key] then return error("Key "..tostring(key) .. ' not found!') end
+		vim:SendKeyEvent(true, keys[key], false, game)
+	elseif typeof(Key) == 'EnumItem' then
+		vim:SendKeyEvent(true, key, false, game)
+	end
+end
+funcs.keyrelease = function(key)
+	if typeof(key) == 'number' then
+		if not keys[key] then return error("Key "..tostring(key) .. ' not found!') end
+		vim:SendKeyEvent(false, keys[key], false, game)
+	elseif typeof(Key) == 'EnumItem' then
+		vim:SendKeyEvent(false, key, false, game)
+	end
+end
+funcs.mousemoverel = function(relx, rely)
+	local Pos = workspace.CurrentCamera.ViewportSize
+	relx = relx or 0
+	rely = rely or 0
+	local x = Pos.X * relx
+	local y = Pos.Y * rely
+	vim:SendMouseMoveEvent(x, y, game)
+end
+funcs.mousemoveabs = function(x, y)
+	x = x or 0 y = y or 0
+	vim:SendMouseMoveEvent(x, y, game)
+end
+
+funcs.newcclosure = function(f)
+	local a = coroutine.wrap(function(...)
+		local b = {coroutine.yield()}
+		while true do
+			b = {coroutine.yield(f(table.unpack(b)))}
+		end
+	end)
+	a()
+	return a
+end -- Credits to myworld AND EMPER for this
+funcs.iscclosure = function(fnc) return debug.info(fnc, 's') == '[C]' end
+funcs.islclosure = function(func) return not funcs.iscclosure(func) end
+funcs.isexecutorclosure = function(fnc)
+	local found = false
+	for i, v in pairs(getgenv()) do
+		if v == fnc then return true end
+	end
+	for i = 1, math.huge do
+		local s, env = pcall(getfenv, i)
+		if not s or found then break end
+		if type(env) == "table" then
+			for _, v in pairs(env) do
+				if v == fnc then
+					found = true
+					break
+				end
+			end
+		end
+		if found then break end
+	end
+
+	return found
+end
+funcs.newlclosure = function(fnc)
+	return function(...) return fnc(...) end
+end
+funcs.clonefunction = funcs.newlclosure
+funcs.is_l_closure = funcs.islclosure
+funcs.is_executor_closure = funcs.isexecutorclosure
+funcs.isourclosure = funcs.isexecutorclosure
+funcs.isexecclosure = funcs.isexecutorclosure
+funcs.checkclosure = funcs.isourclosure
+
+--[[ File system is something i do not know how to implement in roblox lua.
+UPDATE AT 18/5/2024:
+I figured out i can use temp file system with tables.
+]]
+local files = {}
+
+local function startswith(a, b)
+	return a:sub(1, #b) == b
+end
+local function endswith(hello, lo) 
+	return hello:sub(#hello - #lo + 1, #hello) == lo
+end
+
+funcs.writefile = function(path, content)
+	local Path = path:split('/')
+	local CurrentPath = {}
+	for i = 1, #Path do
+		local a = Path[i]
+		CurrentPath[i] = a
+		if not files[a] and i ~= #Path then
+			files[table.concat(CurrentPath, '/')] = {}
+			files[table.concat(CurrentPath, '/') .. '/'] = files[table.concat(CurrentPath, '/')]
+		elseif i == #Path then
+			files[table.concat(CurrentPath, '/')] = tostring(content)
+		end
+	end
+end
+funcs.makefolder = function(path)
+	files[path] = {}
+	files[path .. '/'] = files[path]
+end
+funcs.isfolder = function(path)
+	return type(files[path]) == 'table'
+end
+funcs.isfile = function(path)
+	return type(files[path]) == 'string'
+end
+funcs.readfile = function(path)
+	return files[path]
+end
+funcs.appendfile = function(path, text2)
+	funcs.writefile(path, funcs.readfile(path) .. text2)
+end
+funcs.loadfile = function(path)
+	local content = funcs.readfile(path)
+	if not content then error('File \'' .. tostring(path) .. '\' does not exist.') return '' end
+	local s, func = pcall(function()
+		return loadstring(content)
+	end)
+	return func, not s and func or nil
+end
+funcs.delfolder = function(path)
+	local f = files[path]
+	if type(f) == 'table' then files[path] = nil end
+end
+funcs.delfile = function(path)
+	local f = files[path]
+	if type(f) == 'string' then files[path] = nil end
+end
+funcs.listfiles = function(path)
+	if not path or path == '' then
+		local Files = {}
+		for i, v in pairs(files) do
+			if #i:split('/') == 1 then table.insert(Files, i) end
+		end
+		return Files
+	end
+	if type(files[path]) ~= 'table' then return error(path .. ' is not a folder.') end
+	local Files = {}
+	for i, v in pairs(files) do
+		if startswith(i, path .. '/') and not endswith(i, '/') and i ~= path and #i:split('/') == (#path:split('/') + 1) then table.insert(Files, i) end
+	end
+	return Files
+end
+
+funcs.http.request = funcs.request
+funcs.syn.crypt = funcs.crypt
+funcs.syn.crypto = funcs.crypt
+funcs.syn_backup = funcs.syn
+
+
+funcs.getexecutorname = function()
+	return 'SigmaSploit Z'
+end
+funcs.identifyexecutor = function()
+	return 'SigmaSplot Z | ', ExecutorVersion
+end
+funcs.http_request = getgenv().request or funcs.request
+funcs.getscripts = function()
+	local a = {};for i, v in pairs(game:GetDescendants()) do if v:IsA("LocalScript") or v:IsA("ModuleScript") then table.insert(a, v) end end return a
+end
+funcs.get_scripts = function()
+	local a = {};for i, v in pairs(game:GetDescendants()) do if v:IsA("LocalScript") or v:IsA("ModuleScript") then table.insert(a, v) end end return a
+end
+funcs.getmodules = function()
+	local a = {};for i, v in pairs(game:GetDescendants()) do if v:IsA("ModuleScript") then table.insert(a, v) end end return a
+end
+funcs.getloadedmodules = funcs.getmodules
+funcs.make_readonly = funcs.setreadonly
+funcs.makereadonly = funcs.setreadonly
+funcs.base64encode = funcs.crypt.base64encode
+funcs.base64decode = funcs.crypt.base64decode
+funcs.clonefunc = funcs.clonefunction
+funcs.setsimulationradius = function(Distance, MaxDistance)
+	local LocalPlayer = game:GetService("Players").LocalPlayer
+	assert(type(Distance)=='number','Invalid arguement #1 to \'setsimulationradius\', Number expected got ' .. type(Distance))
+	LocalPlayer.SimulationRadius = type(Distance) == 'number' and Distance or LocalPlayer.SimulationRadius
+	if MaxDistance then
+		assert(type(MaxDistance)=='number','Invalid arguement #2 to \'setsimulationradius\', Number expected got ' .. type(MaxDistance))
+		LocalPlayer.MaxSimulationDistance = MaxDistance
+	end
+end
+funcs.getinstances = function()
+	return game:GetDescendants()
+end
+funcs.getnilinstances = function()
+	return Instances
+end
+funcs.iswriteable = function(tbl)
+	return not table.isfrozen(tbl)
+end
+funcs.makewriteable = function(tbl)
+	return funcs.setreadonly(tbl, false)
+end
+funcs.isscriptable = function(self, prop)
+	return table.find(Hidden, prop) == nil
+end
+funcs.getrunningscripts = function()
+	local scripts = {}
+	for _, v in pairs(funcs.getinstances()) do
+		if v:IsA("LocalScript") and v.Enabled then table.insert(scripts, v) end
+	end
+	return scripts
+end
+funcs.fireproximityprompt = function(p)
+	local Hold, Distance, Enabled, Thing, CFrame1= p.HoldDuration, p.MaxActivationDistance, p.Enabled, p.RequiresLineOfSight, nil
+	-- Make it activatable from anywhere
+	p.MaxActivationDistance = math.huge
+	-- Make it take 0 seconds to activate
+	p.HoldDuration = 0
+	-- Make it enabled (so you can activate it)
+	p.Enabled = true
+	-- Disable RequiresLineOfSight
+	p.RequiresLineOfSight = false
+	-- Show the thingy
+	local function get()
+		local classes = {'BasePart', 'Part', 'MeshPart'}
+		for _, v in pairs(classes) do
+			if p:FindFirstAncestorOfClass(v) then
+				return p:FindFirstAncestorOfClass(v)
+			end
+		end
+	end
+	local a = get()
+	if not a then
+		local parent = p.Parent
+		p.Parent = Instance.new("Part", workspace)
+		a = p.Parent
+	end
+	CFrame1 = a.CFrame
+	a.CFrame = game:GetService("Players").LocalPlayer.Character.Head.CFrame + game:GetService("Players").LocalPlayer.Character.Head.CFrame.LookVector * 2
+	task.wait()
+	p:InputHoldBegin()
+	task.wait()
+	p:InputHoldEnd()
+	p.HoldDuration = Hold
+	p.MaxActivationDistance = Distance
+	p.Enabled = Enabled
+	p.RequiresLineOfSight = Thing
+	a.CFrame = CFrame1
+	p.Parent = parent or p.Parent
+end
+funcs.firetouchinterest = function(toTouch, TouchWith, on)
+	if on == 0 then return end
+	if toTouch.ClassName == 'TouchTransmitter' then
+		local function get()
+			local classes = {'BasePart', 'Part', 'MeshPart'}
+			for _, v in pairs(classes) do
+				if toTouch:FindFirstAncestorOfClass(v) then
+					return toTouch:FindFirstAncestorOfClass(v)
+				end
+			end
+		end
+		toTouch = get()
+	end
+	local cf = toTouch.CFrame
+	local anc = toTouch.CanCollide
+	toTouch.CanCollide = false
+	toTouch.CFrame = TouchWith.CFrame
+	task.wait()
+	toTouch.CFrame = cf
+	toTouch.CanCollide = anc
+end -- i admit its kinda bad dont fucking attack me
+
+-- SHA256 Hashing
+local function str2hexa(a)return string.gsub(a,".",function(b)return string.format("%02x",string.byte(b))end)end;local function num2s(c,d)local a=""for e=1,d do local f=c%256;a=string.char(f)..a;c=(c-f)/256 end;return a end;local function s232num(a,e)local d=0;for g=e,e+3 do d=d*256+string.byte(a,g)end;return d end;local function preproc(h,i)local j=64-(i+9)%64;i=num2s(8*i,8)h=h.."\128"..string.rep("\0",j)..i;assert(#h%64==0)return h end;local function k(h,e,l)local m={}local n={0x428a2f98,0x71374491,0xb5c0fbcf,0xe9b5dba5,0x3956c25b,0x59f111f1,0x923f82a4,0xab1c5ed5,0xd807aa98,0x12835b01,0x243185be,0x550c7dc3,0x72be5d74,0x80deb1fe,0x9bdc06a7,0xc19bf174,0xe49b69c1,0xefbe4786,0x0fc19dc6,0x240ca1cc,0x2de92c6f,0x4a7484aa,0x5cb0a9dc,0x76f988da,0x983e5152,0xa831c66d,0xb00327c8,0xbf597fc7,0xc6e00bf3,0xd5a79147,0x06ca6351,0x14292967,0x27b70a85,0x2e1b2138,0x4d2c6dfc,0x53380d13,0x650a7354,0x766a0abb,0x81c2c92e,0x92722c85,0xa2bfe8a1,0xa81a664b,0xc24b8b70,0xc76c51a3,0xd192e819,0xd6990624,0xf40e3585,0x106aa070,0x19a4c116,0x1e376c08,0x2748774c,0x34b0bcb5,0x391c0cb3,0x4ed8aa4a,0x5b9cca4f,0x682e6ff3,0x748f82ee,0x78a5636f,0x84c87814,0x8cc70208,0x90befffa,0xa4506ceb,0xbef9a3f7,0xc67178f2}for g=1,16 do m[g]=s232num(h,e+(g-1)*4)end;for g=17,64 do local o=m[g-15]local p=bit.bxor(bit.rrotate(o,7),bit.rrotate(o,18),bit.rshift(o,3))o=m[g-2]local q=bit.bxor(bit.rrotate(o,17),bit.rrotate(o,19),bit.rshift(o,10))m[g]=(m[g-16]+p+m[g-7]+q)%2^32 end;local r,s,b,t,u,v,w,x=l[1],l[2],l[3],l[4],l[5],l[6],l[7],l[8]for e=1,64 do local p=bit.bxor(bit.rrotate(r,2),bit.rrotate(r,13),bit.rrotate(r,22))local y=bit.bxor(bit.band(r,s),bit.band(r,b),bit.band(s,b))local z=(p+y)%2^32;local q=bit.bxor(bit.rrotate(u,6),bit.rrotate(u,11),bit.rrotate(u,25))local A=bit.bxor(bit.band(u,v),bit.band(bit.bnot(u),w))local B=(x+q+A+n[e]+m[e])%2^32;x=w;w=v;v=u;u=(t+B)%2^32;t=b;b=s;s=r;r=(B+z)%2^32 end;l[1]=(l[1]+r)%2^32;l[2]=(l[2]+s)%2^32;l[3]=(l[3]+b)%2^32;l[4]=(l[4]+t)%2^32;l[5]=(l[5]+u)%2^32;l[6]=(l[6]+v)%2^32;l[7]=(l[7]+w)%2^32;l[8]=(l[8]+x)%2^32 end;funcs.crypt.hash=function(h)h=preproc(h,#h)local l={0x6a09e667,0xbb67ae85,0x3c6ef372,0xa54ff53a,0x510e527f,0x9b05688c,0x1f83d9ab,0x5be0cd19}for e=1,#h,64 do k(h,e,l)end;return str2hexa(num2s(l[1],4)..num2s(l[2],4)..num2s(l[3],4)..num2s(l[4],4)..num2s(l[5],4)..num2s(l[6],4)..num2s(l[7],4)..num2s(l[8],4))end
+
+funcs.Drawing.new = function(Type) -- Drawing.new
+	local baseProps = {
+		Visible = false,
+		Color = Color3.new(0,0,0),
+		ClassName = nil
+	}
+	if Type == 'Line' then
+		local a = Instance.new("Frame", Instance.new("ScreenGui", DrawingDict))
+		a.Visible = false
+		a.Size = UDim2.new(0, 0, 0, 0)
+		a.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+		a.BackgroundTransparency = 1
+		a.BorderSizePixel = 0
+
+		local meta = baseProps
+		meta.ClassName = Type
+		meta.__index = {
+			Thickness = 1,
+			From = Vector2.new(0, 0),
+			To = Vector2.new(0, 0),
+			Transparency = 0,
+			Remove = function()
+				for i, v in pairs(Drawings) do if v == meta then Drawings[i] = nil end end
+				a:Destroy() 
+			end,
+			Destroy = function()
+				for i, v in pairs(Drawings) do if v == meta then Drawings[i] = nil end end
+				a:Destroy() 
+			end,
+			updateLine = function(self)
+				if not a then return end
+				local from = self.From
+				local to = self.To
+				local distance = (to - from).Magnitude
+				local angle = math.deg(math.atan2(to.Y - from.Y, to.X - from.X))
+
+				a.Size = UDim2.new(0, distance, 0, self.Thickness)
+				a.Position = UDim2.new(0, from.X, 0, from.Y)
+				a.Rotation = angle
+			end
+		}
+
+		meta.__newindex = function(self, key, value)
+			if not self then return end
+			if key == 'Thickness' and typeof(value) == 'number' then
+				rawset(self, key, value)
+				a.Size = UDim2.new(0, (self.To - self.From).Magnitude, 0, value)
+			elseif key == 'Visible' and typeof(value) == 'boolean' then
+				rawset(self, key, value)
+				a.Visible = value
+			elseif key == 'Color' and typeof(value) == 'Color3' then
+				rawset(self, key, value)
+				a.BackgroundColor3 = value
+			elseif key == 'Transparency' and typeof(value) == 'number' and value <= 1 then
+				rawset(self, key, value)
+				a.BackgroundTransparency = 1 - value
+			elseif key == 'From' and typeof(value) == 'Vector2' then
+				rawset(self, key, value)
+				self:updateLine()
+			elseif key == 'To' and typeof(value) == 'Vector2' then
+				rawset(self, key, value)
+				self:updateLine()
+			end
+		end
+		local meta1 = setmetatable({}, meta)
+		Drawings[meta1] = meta1
+		return meta1
+	elseif Type == 'Square' then
+		local a = Instance.new("Frame", DrawingDict)
+		a.Visible = false
+		a.Size = UDim2.new(0, 0, 0, 0)
+		a.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+		a.BackgroundTransparency = 1
+		a.BorderSizePixel = 0
+		local b = Instance.new("UIStroke", a)
+		b.Color = Color3.fromRGB(255, 255, 255)
+		b.Enabled = true
+
+		local meta = baseProps
+		meta.ClassName = Type
+		meta.__index = {
+			Size = Vector2.new(0,0),
+			Position = Vector2.new(0, 0),
+			Remove = function()
+				for i, v in pairs(Drawings) do if v == meta then Drawings[i] = nil end end
+				a:Destroy() 
+			end,
+			Destroy = function()
+				for i, v in pairs(Drawings) do if v == meta then Drawings[i] = nil end end
+				a:Destroy() 
+			end,
+			updateSquare = function(self)
+				if not a then return end
+				a.Size = UDim2.new(0, self.Size.X, 0, self.Size.Y)
+				a.Position = UDim2.new(0, self.Position.X, 0, self.Position.Y)
+			end
+		}
+
+		meta.__newindex = function(self, key, value)
+			if not self then return end
+			if key == 'Filled' and typeof(value) == 'boolean' then
+				rawset(self, key, value)
+				b.Enabled = not value
+				a.BackgroundTransparency = value and 0 or 1
+			elseif key == 'Visible' and typeof(value) == 'boolean' then
+				rawset(self, key, value)
+				a.Visible = value
+			elseif key == 'Color' and typeof(value) == 'Color3' then
+				rawset(self, key, value)
+				a.BackgroundColor3 = value
+				b.Color = value
+			elseif key == 'Position' and typeof(value) == 'Vector2' then
+				rawset(self, key, value)
+				self:updateSquare()
+			elseif key == 'Size' and typeof(value) == 'Vector2' then
+				rawset(self, key, value)
+				self:updateSquare()
+			end
+		end
+		local meta1 = setmetatable({}, meta)
+		Drawings[meta1] = meta1
+		return meta1
+	elseif Type == 'Circle' then
+		local a = Instance.new("Frame", Instance.new("ScreenGui", DrawingDict))
+		a.Visible = false
+		a.Size = UDim2.new(0, 0, 0, 0)
+		a.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+		a.BackgroundTransparency = 1
+		a.BorderSizePixel = 0
+		local b = Instance.new("UIStroke", a)
+		b.Color = Color3.fromRGB(255, 255, 255)
+		b.Enabled = false
+		b.Thickness = 1
+		local c = Instance.new("UICorner", a)
+		c.CornerRadius = UDim.new(1, 0)
+
+		local meta = baseProps
+		meta.ClassName = Type
+		meta.__index = {
+			Thickness = 1,
+			Filled = false,
+			NumSides = 0,
+			Radius = 1,
+			Position = Vector2.new(0, 0),
+			Transparency = 0,
+			Remove = function()
+				for i, v in pairs(Drawings) do if v == meta then Drawings[i] = nil end end
+				a:Destroy() 
+			end,
+			Destroy = function()
+				for i, v in pairs(Drawings) do if v == meta then Drawings[i] = nil end end
+				a:Destroy() 
+			end,
+			updateCircle = function(self)
+				if not b or not a then return end
+				a.Size = UDim2.new(0, self.Radius, 0, self.Radius)
+				a.Position = UDim2.new(0, self.Position.X, 0, self.Position.Y)
+				b.Enabled = not self
+				b.Color = self.Color
+			end
+		}
+
+		meta.__newindex = function(self, key, value)
+			if not self then return end
+			if key == 'Thickness' and typeof(value) == 'number' then
+				rawset(self, key, value)
+				b.Thickness = value
+			elseif key == 'Visible' and typeof(value) == 'boolean' then
+				rawset(self, key, value)
+				a.Visible = value
+			elseif key == 'Color' and typeof(value) == 'Color3' then
+				rawset(self, key, value)
+				a.BackgroundColor3 = value
+				a.Color = value
+			elseif key == 'Transparency' and typeof(value) == 'number' then
+				rawset(self, key, value)
+				a.BackgroundTransparency = 1 - value
+			elseif key == 'Position' and typeof(value) == 'Vector2' then
+				rawset(self, key, value)
+				self:updateCircle()
+			elseif key == 'Radius' and typeof(value) == 'number' then
+				rawset(self, key, value)
+				self:updateCircle()
+			elseif key == 'NumSides' and typeof(value) == 'number' then
+				rawset(self, key, value)
+			elseif key == 'Filled' and typeof(value) == 'boolean' then
+				rawset(self, key, value)
+				self:updateCircle()
+			end
+		end
+		local meta1 = setmetatable({}, meta)
+		Drawings[meta1] = meta1
+		return meta1
+	elseif Type == 'Text' then
+		local a = Instance.new("TextLabel", DrawingDict)
+		a.Visible = false
+		a.Size = UDim2.new(0, 0, 0, 0)
+		a.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+		a.BackgroundTransparency = 1
+		a.BorderSizePixel = 0
+		a.TextStrokeColor3 = Color3.new(0,0,0)
+		a.TextStrokeTransparency = 1
+
+		local meta = baseProps
+		meta.ClassName = Type
+		meta.__index = {
+			Text = '',
+			Transparency = 0,
+			Size = 0,
+			Center = false,
+			Outline = false,
+			OutlineColor = Color3.new(0,0,0),
+			Position = Vector2.new(0,0),
+			Font = 3,
+			Remove = function()
+				for i, v in pairs(Drawings) do if v == meta then Drawings[i] = nil end end
+				a:Destroy() 
+			end,
+			Destroy = function()
+				for i, v in pairs(Drawings) do if v == meta then Drawings[i] = nil end end
+				a:Destroy() 
+			end,
+			updateText = function(self)
+				if not a then return end
+				a.TextScaled = true
+				a.Size = UDim2.new(0, self.Size * 3, 0, self.Size / 2)
+				a.Position = UDim2.new(0, self.Position.X, 0, self.Position.Y)
+				a.Text = self.Text
+				a.Font = Fonts[self.Font]
+				a.Visible = self.Visible
+				a.TextColor3 = self.Color
+				a.TextTransparency = 1 - self.Transparency
+				a.BorderSizePixel = self.Outline and 1 or 0
+				if self.Center then
+					a.TextXAlignment = Enum.TextXAlignment.Center
+					a.TextYAlignment = Enum.TextYAlignment.Center
+				else
+					a.TextXAlignment = Enum.TextXAlignment.Left
+					a.TextYAlignment = Enum.TextYAlignment.Top
+				end
+				a.TextStrokeTransparency = self.Outline and 0 or 1
+				a.TextStrokeColor3 = self.OutlineColor
+			end
+		}
+
+		meta.__newindex = function(self, key, value)
+			if not self then return end
+			if key == 'Text' and typeof(value) == 'string' then
+				rawset(self, key, value)
+			elseif key == 'Visible' and typeof(value) == 'boolean' then
+				rawset(self, key, value)
+				a.Visible = value
+			elseif key == 'Color' and typeof(value) == 'Color3' then
+				rawset(self, key, value)
+			elseif key == 'Transparency' and typeof(value) == 'number' then
+				rawset(self, key, value)
+			elseif key == 'Position' and typeof(value) == 'Vector2' then
+				rawset(self, key, value)
+			elseif key == 'Size' and typeof(value) == 'number' then
+				rawset(self, key, value)
+			elseif key == 'Outline' and typeof(value) == 'boolean' then
+				rawset(self, key, value)
+			elseif key == 'Center' and typeof(value) == 'boolean' then
+				rawset(self, key, value)
+			elseif key == 'OutlineColor' and typeof(value) == 'Color3' then
+				rawset(self, key, value)
+			elseif key == 'Font' and typeof(value) == 'number' then
+				rawset(self, key, value)
+			end
+			self:updateText()
+		end
+
+		local meta1 = setmetatable({}, meta)
+		Drawings[meta1] = meta1
+		return meta1
+	elseif Type == 'Image' then
+		local a = Instance.new("ImageLabel", DrawingDict)
+		a.Visible = false
+		a.Size = UDim2.new(0, 0, 0, 0)
+		a.ImageColor3 = Color3.fromRGB(255,255,255)
+		a.BackgroundTransparency = 1
+		a.BorderSizePixel = 0
+
+		local meta = baseProps
+		meta.ClassName = 'Image'
+		meta.__index = {
+			Text = '',
+			Transparency = 0,
+			Size = Vector2.new(0, 0),
+			Position = Vector2.new(0,0),
+			Color = Color3.fromRGB(255, 255, 255),
+			Image = '',
+			Remove = function()
+				for i, v in pairs(Drawings) do if v == meta then Drawings[i] = nil end end
+				a:Destroy()
+			end,
+			Destroy = function()
+				for i, v in pairs(Drawings) do
+					if v == meta then Drawings[i] = nil end
+				end
+				a:Destroy()
+			end,
+			updateImage = function(self)
+				if not a then return end
+				a.Size = UDim2.new(0, self.Size.X, 0, self.Size.Y)
+				a.Position = UDim2.new(0, self.Position.X, 0, self.Position.Y)
+				a.Visible = self.Visible
+				a.ImageColor3 = self.Color
+				a.ImageTransparency = 1 - self.Transparency
+				a.BorderSizePixel = self.Outline and 1 or 0
+				a.Image = self.Image
+			end
+		}
+
+		meta.__newindex = function(self, key, value)
+			if not self then return end
+			if key == 'Visible' and typeof(value) == 'boolean' then
+				rawset(self, key, value)
+			elseif key == 'Color' and typeof(value) == 'Color3' then
+				rawset(self, key, value)
+			elseif key == 'Transparency' and typeof(value) == 'number' then
+				rawset(self, key, value)
+			elseif key == 'Position' and typeof(value) == 'Vector2' then
+				rawset(self, key, value)
+			elseif key == 'Size' and typeof(value) == 'number' then
+				rawset(self, key, value)
+			elseif key == 'Image' and typeof(value) == 'string' then
+				rawset(self, key, value)
+			else
+				return
+			end
+			self:updateImage()
+		end
+
+		local meta1 = setmetatable({}, meta)
+		Drawings[meta1] = meta1
+		return meta1
+	end
+end
+
+funcs.randomstring = funcs.crypt.random
+funcs.getprotecteduis = function()
+	return protecteduis
+end
+funcs.getprotectedguis = funcs.getprotecteduis
+funcs.cleardrawcache = function()
+	for _, v in pairs(Drawings) do
+		v:Remove()
+	end
+	table.clear(Drawings)
+end
+funcs.checkcaller = function()
+	local info = debug.info(getgenv, 'slnaf')
+	return debug.info(1, 'slnaf')==info
+end
+funcs.getthreadcontext = function() -- funny little way of getting this
+	if coroutine.isyieldable(coroutine.running()) then -- check if u can use task.wait or not
+		QueueGetIdentity()
+		task.wait(.1)
+		return tonumber(Identity)
+	else
+		if Identity == -1 then
+			task.spawn(QueueGetIdentity)
+			return 1
+		else
+			return tonumber(Identity)
+		end
+	end
+end
+funcs.getthreadidentity = funcs.getthreadcontext
+funcs.getidentity = funcs.getthreadcontext
+funcs.rconsolecreate = function()
+	local Clone = Console:Clone()
+	Clone.Parent = gethui()
+	ConsoleClone = Clone
+	ConsoleClone.ConsoleFrame.Topbar.InputBegan:Connect(function(input)
+		if input.UserInputType == Enum.UserInputType.MouseButton1 then
+			startDrag(input, ConsoleClone.ConsoleFrame)
+		end
+	end)
+end
+funcs.rconsoledestroy = function()
+	if ConsoleClone then ConsoleClone:Destroy() end
+	ConsoleClone = nil
+end
+funcs.rconsoleprint = function(msg, cc)
+	local CONSOLE = ConsoleClone or Console
+	repeat task.wait() until ConsoleQueue:IsEmpty()
+	msg = tostring(msg)
+	local last_color = nil
+
+	msg = msg:gsub('@@(%a+)@@', function(color)
+		local colorName = color:upper()
+		local rgbColor = colors[colorName]
+		if rgbColor then
+			local fontTag = string.format('<font color="rgb(%d,%d,%d)">', rgbColor.R * 255, rgbColor.G * 255, rgbColor.B * 255)
+			local result = last_color and '</font>' .. fontTag or fontTag
+			last_color = colorName
+			return result
+		else
+			return '@@' .. color .. '@@'
+		end
+	end)
+
+	if last_color then
+		msg = msg .. '</font>'
+	end
+
+	if msg:match('<font color=".+">.+</font>') then
+		if msg:match('<font color=".+"></font>') == msg then MessageColor = colors[last_color] return end
+	end
+
+	local tmp = MessageTemplate:Clone()
+	tmp.Parent = CONSOLE.ConsoleFrame.Holder
+	tmp.Text = msg
+	tmp.Visible = true
+	tmp.TextColor3 = cc and cc or MessageColor
+end
+funcs.rconsoleinput = function()
+	local CONSOLE = ConsoleClone or Console
+	repeat task.wait() until ConsoleQueue:IsEmpty()
+	ConsoleQueue:Queue('input')
+	local box = InputTemplate:Clone()
+	local val
+	box.Parent = CONSOLE.ConsoleFrame.Holder
+	box.Visible = true
+	box.TextEditable = true
+	box.TextColor3 = MessageColor
+
+	box.FocusLost:Connect(function(a)
+		if not a then return end
+		val = box.Text
+		ConsoleQueue:Update()
+	end)
+
+	local FOCUSED = false
+	while true do
+		if box.Text:sub(#box.Text, #box.Text) == '_' or box.Text == '' or not box:IsFocused() then
+			box.TextColor3 = Color3.fromRGB(255, 255, 255)
+			box.Text = box.Text .. '_'
+
+			for _ = 1, 100 do
+				task.wait(1/2)
+				if box:IsFocused() then
+					FOCUSED = true
+					box.TextColor3 = MessageColor
+					break
+				end
+				box.Text = box.Text:sub(#box.Text, #box.Text) == '_' and box.Text:sub(#box.Text-1, #box.Text-1) or box.Text .. '_'
+			end
+			if FOCUSED then break end
+		else
+			task.wait(0.1)
+		end
+	end
+	repeat task.wait() until val
+	return val
+end
+funcs.rconsolename = function(a)
+	if ConsoleClone then
+		ConsoleClone.ConsoleFrame.Title.Text = a
+	else
+		Console.ConsoleFrame.Title.Text = a
+	end
+end
+funcs.printconsole = function(msg, r, g, b)
+	r = r or 0
+	g = g or 0
+	b = b or 0
+	rconsoleprint(msg, Color3.fromRGB(r, g, b))
+end
+funcs.rconsoleclear = function()
+	if ConsoleClone then
+		for i, v in pairs(ConsoleClone.ConsoleFrame.Holder:GetChildren()) do
+			if v.ClassName == 'TextLabel' or v.ClassName == 'TextBox' then v:Destroy() end
+		end
+	else
+		for i, v in pairs(Console.ConsoleFrame.Holder:GetChildren()) do
+			if v.ClassName == 'TextLabel' or v.ClassName == 'TextBox' then v:Destroy() end
+		end
+	end
+end
+funcs.rconsoleinfo = function(a)
+	rconsoleprint('[INFO]: ' .. tostring(a))
+end
+funcs.rconsolewarn = function(a)
+	rconsoleprint('[*]: ' .. tostring(a))
+end
+funcs.rconsoleerr = function(a)
+	local clr = MessageColor
+	local oldColor
+	for i, v in pairs(colors) do
+		if clr == v then oldColor = i break end
+	end
+	rconsoleprint(string.format('[@@RED@@*@@%s@@]: %s', oldColor, tostring(a)))
+end
+funcs.rconsoleinputasync = funcs.rconsoleinput
+funcs.consolecreate = funcs.rconsolecreate
+funcs.consoleclear = funcs.rconsoleclear
+funcs.consoledestroy = funcs.rconsoledestroy
+funcs.consoleinput = funcs.rconsoleinput
+funcs.rconsolesettitle = funcs.rconsolename
+funcs.consolesettitle = funcs.rconsolename
+
+funcs.queue_on_teleport = function(scripttoexec) -- WARNING: MUST HAVE MOREUNC IN AUTO EXECUTE FOR THIS TO WORK.
+	local newTPService = {
+		__index = function(self, key)
+			if key == 'Teleport' then
+				return function(gameId, player, teleportData, loadScreen)
+					teleportData = {teleportData, MOREUNCSCRIPTQUEUE=scripttoexec}
+					return oldGame:GetService("TeleportService"):Teleport(gameId, player, teleportData, loadScreen)
+				end
+			end
+		end
+	}
+	local gameMeta = {
+		__index = function(self, key)
+			if key == 'GetService' then
+				return function(name)
+					if name == 'TeleportService' then return newTPService end
+				end
+			elseif key == 'TeleportService' then return newTPService end
+			return game[key]
+		end,
+		__metatable = 'The metatable is protected'
+	}
+	getgenv().game = setmetatable({}, gameMeta)
+end
+funcs.queueonteleport = funcs.queue_on_teleport
+
+local Count = 0
+local Total = 0
+
+local funcs2 = {}
+for i, _ in pairs(funcs) do
+	table.insert(funcs2, i)
+end
+table.sort(funcs2, function(a, b)
+	return string.byte(a:lower())<string.byte(b:lower())
+end)
+
+for i, v in pairs(funcs2) do
+	if not getgenv()[i] then
+		Total = Total + 1
+	end
+end
+
+for _, i in pairs(funcs2) do
+	local v = funcs[i]
+	local Result = SafeOverride(i, v)
+	if Result == 2 then Count = Count + 1 end
+	local str = Result == 1 and ('[⛔] %s already exists.'):format(i) or Result == 2 and ("[✅] Added %s%s to the global environment. (%d/%d)"):format(i, type(v)=='function' and '()' or '', Count, Total) or Result ~= 1 and Result ~= 2 and ("[⛔] Unknown result for %s."):format(i)
+	--print(str)
+end
+
+getgenv().syn.protect_gui(DrawingDict)
+getgenv().syn.protect_gui(ClipboardUI)
+print('Executor Loaded')
+getgenv().MoreUNC = true
