@@ -14,7 +14,7 @@ local task = table.clone(task)
 local game = game -- game is game
 local oldGame = game
 
-local ExecutorVersion = '1.0.5'
+local ExecutorVersion = '1.0.0'
 
 local isDragging = false -- rconsole
 local dragStartPos = nil -- rconsole
@@ -1012,7 +1012,7 @@ funcs.getexecutorname = function()
 	return 'SigmaSploit Z'
 end
 funcs.identifyexecutor = function()
-	return 'SigmaSplot Z | ', ExecutorVersion
+	return 'SigmaSploit Z | ', ExecutorVersion
 end
 funcs.http_request = getgenv().request or funcs.request
 funcs.getscripts = function()
