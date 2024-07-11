@@ -1009,10 +1009,10 @@ funcs.syn_backup = funcs.syn
 
 
 funcs.getexecutorname = function()
-	return 'SigmaSploit Z'
+	return 'Proton'
 end
 funcs.identifyexecutor = function()
-	return 'SigmaSploit Z | ', ExecutorVersion
+	return 'Proton | ', ExecutorVersion
 end
 funcs.http_request = getgenv().request or funcs.request
 funcs.getscripts = function()
