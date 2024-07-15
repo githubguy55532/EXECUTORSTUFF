@@ -1009,7 +1009,7 @@ funcs.syn_backup = funcs.syn
 
 
 funcs.getexecutorname = function()
-	return 'Proton'
+	return 'proton'
 end
 funcs.identifyexecutor = function()
 	return 'Proton | ', ExecutorVersion
